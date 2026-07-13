@@ -203,7 +203,7 @@ class ApiClient extends EventTarget {
         formData.append('file', file);
         
         const requestId = this._generateRequestId();
-        the abortController = new AbortController();
+        const abortController = new AbortController();
         this._abortControllers.set(requestId, abortController);
         
         try {

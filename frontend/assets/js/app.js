@@ -775,8 +775,8 @@ function cleanup() {
     console.log('[App] Cleaning up...');
     
     // Close active streams
-    if (Modules.stream && typeof Modules.stream.close === 'function') {
-        Modules.stream.close();
+    if (Modules.stream && typeof Modules.stream.disconnect === 'function') {
+        Modules.stream.disconnect();
     }
     
     // Remove event listeners

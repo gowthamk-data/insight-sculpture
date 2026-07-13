@@ -417,6 +417,13 @@ class ChatManager {
                 explanation: explanation,
             });
 
+            if (response && response.chart) {
+                this._dispatchEvent('analysisChartReady', {
+                    chart: response.chart,
+                    source: 'analyze',
+                });
+            }
+
             this._dispatchEvent('chatResponseCompleted', {
                 content: explanation,
             });

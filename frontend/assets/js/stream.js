@@ -155,6 +155,20 @@ class StreamManager {
          * @type {string|null}
          */
         this._streamId = null;
+
+        /**
+         * Last question used for reconnection.
+         * @private
+         * @type {string|null}
+         */
+        this._question = null;
+
+        /**
+         * Last conversation history used for reconnection.
+         * @private
+         * @type {Array<Object>|null}
+         */
+        this._conversationHistory = null;
     }
 
     // ============================================================
@@ -234,6 +248,8 @@ class StreamManager {
         this._retryCount = 0;
         this._intentionalDisconnect = false;
         this._sessionId = sessionId;
+        this._question = question;
+        this._conversationHistory = conversationHistory;
 
         this._setState(StreamState.CONNECTING);
 
@@ -656,10 +672,12 @@ class StreamManager {
         );
 
         setTimeout(() => {
-            if (!this._intentionalDisconnect && this._sessionId) {
-                // Re-initiate the stream via ApiClient
-                // The caller must provide the question again
-                this._dispatchEvent('stream:status', { status: 'reconnecting' });
+            if (!this._intentionalDisconnect && this._sessionId && this._question) {
+                this._initiateStream(
+                    this._sessionId,
+                    this._question,
+                    this._conversationHistory
+                );
             }
         }, delay);
     }
@@ -856,6 +874,8 @@ class StreamManager {
 
         this._streamId = null;
         this._sessionId = null;
+        this._question = null;
+        this._conversationHistory = null;
         this._retryCount = 0;
         this._streamController = null;
 

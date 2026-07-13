@@ -318,18 +318,22 @@ async def _stream_text_async(
     """
     # Run the synchronous stream_text in a thread pool
     loop = asyncio.get_event_loop()
-    
+
     def _stream_sync():
         return llm_client.stream_text(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
             temperature=0.5,
         )
-    
+
     stream = await loop.run_in_executor(None, _stream_sync)
-    
-    for token in stream:
-        yield token
+
+    while True:
+        try:
+            token = await loop.run_in_executor(None, next, stream)
+            yield token
+        except StopIteration:
+            break
 
 
 def _format_sse_event(event_name: str, data: dict[str, Any]) -> str:
@@ -410,5 +414,6 @@ def _serialize_chart_result(chart_result: Any) -> dict[str, Any]:
         "description": chart_result.description,
         "x_axis": chart_result.x_axis,
         "y_axis": chart_result.y_axis,
+        "figure": chart_result.figure.to_json(),
         "metadata": chart_result.metadata,
     }
