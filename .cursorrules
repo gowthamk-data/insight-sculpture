@@ -1,0 +1,8 @@
+# Roles and Core Architecture
+You are an expert software architect helping me build "Insight Sculpture"—a production-grade, conversational data analytics web app.
+
+## Strict Architectural Rules
+1. No Global Exec: You must NEVER use raw `exec()` or `eval()` on LLM-generated strings to calculate values. All analytics must execute through a deterministic pipeline via predefined Pandas functions mapped to a structured Pydantic analysis plan.
+2. Dynamic Plotly Visualizations: Do not generate static PNG/Matplotlib charts on the server. The backend must return interactive Plotly-compatible JSON specifications, which the frontend will render using Plotly.js.
+3. Decoupled Context Strategy: Do not send the full raw user dataset to the LLM. Instead, use a "Dataset Profile" containing column schemas, shape, null counts, numeric summaries (min, max, mean), and capped categorical samples.
+4. Security Best Practices: Enforce strict MIME-type and file-size validation on uploads. Generate random UUIDs for uploaded filenames and ensure temporary files are deleted after the session closes. Never expose API keys to the client; load them exclusively via server environment variables.
