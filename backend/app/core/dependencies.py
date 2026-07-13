@@ -219,18 +219,14 @@ def get_llm_client() -> BaseLLMClient:
 # ============================================================
 
 
-def get_planner(llm_client: BaseLLMClient) -> AnalysisPlanner:
-    """Get an analysis planner with the provided LLM client.
+def get_planner() -> AnalysisPlanner:
+    """Get an analysis planner with the cached LLM client.
 
     The planner converts natural language questions into validated
-    AnalysisPlan objects. It uses dependency injection for the LLM client.
+    AnalysisPlan objects. It uses the cached LLM client internally.
 
-    Note: This function is NOT cached because it receives the LLM client
-    as a parameter. The LLM client itself is cached via get_llm_client().
-
-    Args:
-        llm_client: LLM client for generating analysis plans. Must implement
-            BaseLLMClient interface.
+    Note: This function is NOT cached because it creates a new planner
+    instance. The LLM client it depends on is cached via get_llm_client().
 
     Returns:
         AnalysisPlanner instance.
@@ -239,6 +235,7 @@ def get_planner(llm_client: BaseLLMClient) -> AnalysisPlanner:
         DependencyError: If planner initialization fails.
     """
     try:
+        llm_client = get_llm_client()
         return AnalysisPlanner(llm_client=llm_client)
     except Exception as exc:
         logger.error(f"Failed to initialize planner: {exc}", exc_info=True)
@@ -250,18 +247,14 @@ def get_planner(llm_client: BaseLLMClient) -> AnalysisPlanner:
 # ============================================================
 
 
-def get_explainer(llm_client: BaseLLMClient):
-    """Get an analysis explainer with the provided LLM client.
+def get_explainer():
+    """Get an analysis explainer with the cached LLM client.
 
     The explainer converts execution results into natural-language explanations.
-    It uses dependency injection for the LLM client.
+    It uses the cached LLM client internally.
 
-    Note: This function is NOT cached because it receives the LLM client
-    as a parameter. The LLM client itself is cached via get_llm_client().
-
-    Args:
-        llm_client: LLM client for generating explanations. Must implement
-            BaseLLMClient interface.
+    Note: This function is NOT cached because it creates a new explainer
+    instance. The LLM client it depends on is cached via get_llm_client().
 
     Returns:
         AnalysisExplainer instance.
@@ -271,6 +264,7 @@ def get_explainer(llm_client: BaseLLMClient):
     """
     try:
         from app.llm.explainer import AnalysisExplainer
+        llm_client = get_llm_client()
         return AnalysisExplainer(llm_client=llm_client)
     except Exception as exc:
         logger.error(f"Failed to initialize explainer: {exc}", exc_info=True)

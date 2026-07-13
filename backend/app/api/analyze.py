@@ -23,6 +23,14 @@ from app.analytics.chart_builder import (
     MissingColumnError,
     UnsupportedChartTypeError,
 )
+from app.core.dependencies import (
+    get_chart_builder,
+    get_executor,
+    get_explainer,
+    get_llm_client,
+    get_planner,
+    get_session_manager,
+)
 from app.executor import DataExecutor, ExecutionResult
 from app.llm.client import (
     AuthenticationError,
@@ -37,14 +45,12 @@ from app.llm.explainer import (
     ExplanationResult,
     InvalidExecutionResultError as ExplainerInvalidExecutionResultError,
 )
-from app.llm.openai_client import BaseLLMClient, OpenAIClient
 from app.llm.planner import (
     AnalysisPlanner,
     InvalidDatasetProfileError,
     InvalidQuestionError,
     PlanningError,
 )
-from app.schemas import AnalysisPlan
 from app.session import DatasetSessionManager
 
 logger = logging.getLogger(__name__)
@@ -78,43 +84,6 @@ class AnalyzeResponse(BaseModel):
 
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
-
-
-# Dependency injection functions
-def get_session_manager() -> DatasetSessionManager:
-    """Provide a DatasetSessionManager instance."""
-    return DatasetSessionManager()
-
-
-def get_llm_client() -> BaseLLMClient:
-    """Provide an LLM client instance."""
-    return OpenAIClient()
-
-
-def get_planner(
-    llm_client: BaseLLMClient = Depends(get_llm_client),
-) -> AnalysisPlanner:
-    """Provide an AnalysisPlanner instance with dependency injection."""
-    return AnalysisPlanner(llm_client=llm_client)
-
-
-def get_executor(
-    session_manager: DatasetSessionManager = Depends(get_session_manager),
-) -> DataExecutor:
-    """Provide a DataExecutor instance with dependency injection."""
-    return DataExecutor(session_manager=session_manager)
-
-
-def get_chart_builder() -> ChartBuilder:
-    """Provide a ChartBuilder instance."""
-    return ChartBuilder()
-
-
-def get_explainer(
-    llm_client: BaseLLMClient = Depends(get_llm_client),
-) -> AnalysisExplainer:
-    """Provide an AnalysisExplainer instance with dependency injection."""
-    return AnalysisExplainer(llm_client=llm_client)
 
 
 @router.post("/", response_model=AnalyzeResponse, status_code=status.HTTP_200_OK)

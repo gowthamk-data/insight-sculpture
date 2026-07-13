@@ -26,6 +26,13 @@ from app.analytics.chart_builder import (
     MissingColumnError,
     UnsupportedChartTypeError,
 )
+from app.core.dependencies import (
+    get_chart_builder,
+    get_executor,
+    get_llm_client,
+    get_planner,
+    get_session_manager,
+)
 from app.executor import DataExecutor, ExecutionResult
 from app.llm.client import (
     AuthenticationError,
@@ -34,7 +41,7 @@ from app.llm.client import (
     RateLimitError,
     TimeoutError,
 )
-from app.llm.openai_client import BaseLLMClient, OpenAIClient
+from app.llm.openai_client import BaseLLMClient
 from app.llm.planner import (
     AnalysisPlanner,
     InvalidDatasetProfileError,
@@ -42,7 +49,6 @@ from app.llm.planner import (
     PlanningError,
 )
 from app.llm.prompts import build_explainer_system_prompt, build_explainer_user_prompt
-from app.schemas import AnalysisPlan
 from app.session import DatasetSessionManager
 
 logger = logging.getLogger(__name__)
@@ -60,36 +66,6 @@ class StreamRequest(BaseModel):
 
 
 router = APIRouter(prefix="/stream", tags=["stream"])
-
-
-# Dependency injection functions (reuse from analyze.py)
-def get_session_manager() -> DatasetSessionManager:
-    """Provide a DatasetSessionManager instance."""
-    return DatasetSessionManager()
-
-
-def get_llm_client() -> BaseLLMClient:
-    """Provide an LLM client instance."""
-    return OpenAIClient()
-
-
-def get_planner(
-    llm_client: BaseLLMClient = Depends(get_llm_client),
-) -> AnalysisPlanner:
-    """Provide an AnalysisPlanner instance with dependency injection."""
-    return AnalysisPlanner(llm_client=llm_client)
-
-
-def get_executor(
-    session_manager: DatasetSessionManager = Depends(get_session_manager),
-) -> DataExecutor:
-    """Provide a DataExecutor instance with dependency injection."""
-    return DataExecutor(session_manager=session_manager)
-
-
-def get_chart_builder() -> ChartBuilder:
-    """Provide a ChartBuilder instance."""
-    return ChartBuilder()
 
 
 @router.post("/", response_class=StreamingResponse)

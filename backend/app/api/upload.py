@@ -13,10 +13,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
+from app.core.dependencies import get_dataset_profiler, get_session_manager
 from app.profiler import DatasetProfiler
 from app.session import DatasetSessionManager
 
@@ -93,8 +94,8 @@ def _sanitize_filename(filename: str) -> str:
 @router.post("/", response_model=UploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_dataset(
     file: UploadFile = File(..., description="Dataset file to upload (CSV, XLSX, XLS)."),
-    session_manager: DatasetSessionManager = None,
-    profiler: DatasetProfiler = None,
+    session_manager: DatasetSessionManager = Depends(get_session_manager),
+    profiler: DatasetProfiler = Depends(get_dataset_profiler),
 ) -> UploadResponse:
     """Upload a dataset file and create an analysis session.
 
@@ -112,11 +113,6 @@ async def upload_dataset(
     Raises:
         HTTPException: For validation errors, file processing errors, or session creation failures.
     """
-    # Initialize dependencies if not provided (for testing/flexibility)
-    if session_manager is None:
-        session_manager = DatasetSessionManager()
-    if profiler is None:
-        profiler = DatasetProfiler()
 
     # Validate file exists
     if not file or not file.filename:
