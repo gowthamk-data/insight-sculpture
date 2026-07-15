@@ -251,6 +251,14 @@ class AnalysisExplainer:
                 else:
                     sections.append(f"- {key}: {value}")
 
+        # Add a sample of the actual execution results to ground the explanation in real values
+        dataframe = getattr(execution_result, "dataframe", None)
+        if dataframe is not None and hasattr(dataframe, "empty") and not dataframe.empty:
+            sections.append("\n**Result Sample**:")
+            for _, row in dataframe.head(5).iterrows():
+                row_items = [f"{col}={self._format_value(value)}" for col, value in row.items()]
+                sections.append(f"- {', '.join(row_items)}")
+
         # Add chart recommendation
         if hasattr(execution_result, "chart_recommendation"):
             sections.append(f"\n**Chart Recommendation**: {execution_result.chart_recommendation}")

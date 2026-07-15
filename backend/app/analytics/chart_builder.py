@@ -223,7 +223,6 @@ class ChartBuilder:
             xaxis_title=x_col,
             yaxis_title=y_col,
             hovermode="x unified",
-            responsive=True,
         )
 
         return ChartResult(
@@ -280,7 +279,6 @@ class ChartBuilder:
             xaxis_title=x_col,
             yaxis_title=y_col,
             hovermode="x unified",
-            responsive=True,
         )
 
         return ChartResult(
@@ -335,7 +333,6 @@ class ChartBuilder:
             xaxis_title=x_col,
             yaxis_title=y_col,
             hovermode="closest",
-            responsive=True,
         )
 
         return ChartResult(
@@ -377,9 +374,7 @@ class ChartBuilder:
         )
 
         # Update layout
-        fig.update_layout(
-            responsive=True,
-        )
+        fig.update_layout()
 
         return ChartResult(
             figure=fig,
@@ -431,7 +426,6 @@ class ChartBuilder:
             xaxis_title=x_col,
             yaxis_title="Count",
             hovermode="x unified",
-            responsive=True,
         )
 
         return ChartResult(
@@ -503,7 +497,6 @@ class ChartBuilder:
             xaxis_title=x_col if x_col else None,
             yaxis_title=y_col,
             hovermode="x unified",
-            responsive=True,
         )
 
         return ChartResult(
@@ -553,7 +546,6 @@ class ChartBuilder:
         fig.update_layout(
             xaxis_title="Variable",
             yaxis_title="Variable",
-            responsive=True,
         )
 
         return ChartResult(

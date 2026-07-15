@@ -206,12 +206,35 @@ class DataExecutor:
         grouped = df.groupby(plan.group_by, dropna=False)[plan.target_columns].agg(agg_name)
         result_df = grouped.reset_index()
 
+        if plan.sort_by is not None:
+            sort_columns = self._resolve_sort_columns(plan)
+            self._validate_sort_columns(result_df, sort_columns)
+            ascending = plan.sort_order != SortOrder.DESC
+            result_df = result_df.sort_values(by=sort_columns, ascending=ascending, kind="mergesort")
+        else:
+            sort_columns = None
+
+        if plan.limit is not None:
+            result_df = result_df.head(plan.limit)
+
         summary: SummaryDict = {
             "group_by": plan.group_by,
             "aggregation": plan.aggregation.value,
             "target_columns": plan.target_columns,
             "groups_returned": int(result_df.shape[0]),
         }
+
+        if sort_columns is not None:
+            summary.update(
+                {
+                    "sort_by": sort_columns,
+                    "sort_order": (plan.sort_order or SortOrder.ASC).value,
+                }
+            )
+
+        if plan.limit is not None:
+            summary["limit"] = plan.limit
+
         return result_df, summary
 
     def _execute_sort(
