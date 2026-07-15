@@ -8,7 +8,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any, Iterator
 
-from openai import APICONNECTIONERROR, AuthenticationError, OpenAI, RateLimitError
+from openai import APIConnectionError, AuthenticationError, OpenAI, RateLimitError
 from openai import Stream as OpenAIStream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from pydantic import BaseModel, ValidationError
@@ -492,7 +492,7 @@ class OpenAIClient(BaseLLMClient):
                     raise AppRateLimitError(
                         "OpenAI rate limit exceeded after retries."
                     ) from exc
-            except APICONNECTIONERROR as exc:
+            except APIConnectionError as exc:
                 last_exception = exc
                 if attempt < MAX_RETRIES:
                     logger.warning(
@@ -555,7 +555,7 @@ class OpenAIClient(BaseLLMClient):
                 "OpenAI rate limit exceeded. Please try again later."
             )
 
-        if isinstance(exc, APICONNECTIONERROR):
+        if isinstance(exc, APIConnectionError):
             return NetworkError(
                 "Failed to connect to OpenAI. Please check your network connection."
             )

@@ -130,6 +130,7 @@ class AnalysisPlanner:
 
         # Build prompts
         system_prompt = build_planner_system_prompt()
+        print(system_prompt)
         user_prompt = self._prepare_prompt(user_question, dataset_context, conversation_history)
 
         try:

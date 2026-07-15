@@ -79,7 +79,7 @@ class LLMClient:
     DEFAULT_MODELS: dict[LLMProvider, str] = {
         LLMProvider.OPENAI: "gpt-4o",
         LLMProvider.ANTHROPIC: "claude-3-5-sonnet-20240620",
-        LLMProvider.GEMINI: "gemini-2.5-flash",
+        LLMProvider.GEMINI: "models/gemini-3.5-flash",
     }
 
     def __init__(self) -> None:

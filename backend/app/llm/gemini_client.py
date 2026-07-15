@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import time
+from pprint import pformat
 from typing import Any, Iterator
 
 from google import genai
@@ -32,6 +33,7 @@ from app.llm.client import (
     StructuredValidationError,
     TimeoutError as AppTimeoutError,
 )
+from app.llm.openai_client import BaseLLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,7 @@ INITIAL_RETRY_DELAY = 1.0  # seconds
 RETRY_BACKOFF_MULTIPLIER = 2.0
 
 
-class GeminiClient:
+class GeminiClient(BaseLLMClient):
     """Gemini implementation of the LLM client interface.
 
     This class manages communication with Google Gemini's API using the official
@@ -50,7 +52,7 @@ class GeminiClient:
     exceptions.
     """
 
-    DEFAULT_MODEL = "gemini-2.5-flash"
+    DEFAULT_MODEL = "models/gemini-3.5-flash"
     DEFAULT_TIMEOUT = 60.0  # seconds
     DEFAULT_TEMPERATURE = 0.7
 
@@ -268,15 +270,41 @@ class GeminiClient:
         response_model: type[BaseModel],
         temperature: float,
     ) -> Any:
-        """Call the Gemini API with structured output.
+        """Call the Gemini API for JSON-structured output.
+
+        Strategy: request JSON output from Gemini via
+        ``response_mime_type="application/json"``, then validate the
+        response text against the provided Pydantic model on the client
+        side.  This approach:
+
+        1. Avoids a compatibility issue in google-genai v2.11.0 where the
+           SDK's internal ``t_schema`` transformer validates the schema
+           against ``types.Schema`` — a Pydantic model that does not
+           accept fields like ``exclusiveMinimum``, ``default``, or
+           ``title`` that Pydantic's ``model_json_schema()`` emits,
+           causing a ``ValidationError`` before the API call is made.
+
+        2. Does NOT pass ``response_schema`` — eliminating schema-transformer
+           failures and wire-format naming issues (e.g. ``additionalProperties``
+           being rejected as ``additional_properties`` by the API).
+
+        3. Relies on the prompt to constrain output shape, which is the
+           officially recommended pattern in the Gemini documentation for
+           applications that already implement client-side Pydantic
+           validation (as ``_validate_structured_response`` does).
+
+        4. Keeps validation entirely on our side, where Pydantic ``model_validate``
+           correctly handles all field constraints.
 
         Args:
             messages: List of message dictionaries.
-            response_model: Pydantic model for structured output.
+            response_model: Pydantic model for structured output (used for
+                client-side validation, NOT sent to the API).
             temperature: Sampling temperature.
 
         Returns:
-            Gemini response object with parsed structured data.
+            Gemini response object with text content that will be parsed
+            into JSON by _validate_structured_response.
 
         Raises:
             RuntimeError: If client is not initialized.
@@ -290,7 +318,6 @@ class GeminiClient:
         config = genai_types.GenerateContentConfig(
             temperature=temperature,
             response_mime_type="application/json",
-            response_schema=response_model,
         )
 
         if system_instruction:
@@ -411,10 +438,18 @@ class GeminiClient:
         try:
             # Prefer native parsed response from Gemini SDK
             if hasattr(response, 'parsed') and response.parsed is not None:
-                return response_model.model_validate(response.parsed)
+                logger.info("Gemini parsed response:\n%s", pformat(response.parsed))
+                try:
+                    return response_model.model_validate(response.parsed)
+                except ValidationError as exc:
+                    logger.error("Validation failed for parsed response:\n%s", pformat(response.parsed))
+                    raise StructuredValidationError(
+                        f"Failed to validate structured output: {exc}"
+                    ) from exc
 
             # Fallback: parse text manually
             content = response.text
+            logger.info("Gemini raw response:\n%s", content)
             if content is None or content.strip() == "":
                 raise EmptyResponseError("LLM returned empty structured content.")
 
@@ -424,6 +459,8 @@ class GeminiClient:
                 raise InvalidResponseError(
                     f"LLM returned invalid JSON: {exc}"
                 ) from exc
+
+            logger.info("Gemini parsed JSON:\n%s", pformat(parsed_content))
 
             try:
                 return response_model.model_validate(parsed_content)

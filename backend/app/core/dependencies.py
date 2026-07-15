@@ -24,6 +24,7 @@ from app.core.exceptions import (
 )
 from app.executor import DataExecutor
 from app.llm.openai_client import BaseLLMClient, OpenAIClient
+from app.llm.gemini_client import GeminiClient
 from app.llm.planner import AnalysisPlanner
 from app.llm.prompts import build_dataset_context
 from app.profiler import DatasetProfiler
@@ -187,22 +188,36 @@ def get_llm_client() -> BaseLLMClient:
             )
 
         # Create appropriate client based on provider
+
         if settings.llm_provider.value == "openai":
             return OpenAIClient(
                 api_key=settings.openai_api_key,
-                model=None,  # Use default or environment variable
-                timeout=None,  # Use default timeout
-            )
-        elif settings.llm_provider.value == "anthropic":
-            # Anthropic client will be added when needed
-            raise ProviderConfigurationError(
-                details={"provider": "anthropic", "reason": "Not yet implemented"}
-            )
-        else:
-            raise ProviderConfigurationError(
-                details={"provider": settings.llm_provider.value, "reason": "Unknown provider"}
+                model=None,
+                timeout=None,
+        )
+
+        elif settings.llm_provider.value == "gemini":
+            return GeminiClient(
+                api_key=settings.gemini_api_key,
+                model=None,
+                timeout=None,
             )
 
+        elif settings.llm_provider.value == "anthropic":
+            raise ProviderConfigurationError(
+                details={
+                "provider": "anthropic",
+                "reason": "Not yet implemented",
+        }
+    )
+
+        else:
+            raise ProviderConfigurationError(
+            details={
+                "provider": settings.llm_provider.value,
+                "reason": "Unknown provider",
+            }
+    )
     except AuthenticationError:
         # Re-raise authentication errors directly
         raise
