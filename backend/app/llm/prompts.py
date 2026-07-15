@@ -68,7 +68,49 @@ Recommend visualizations when appropriate:
 
 ## Output Format
 
-You must output a valid JSON object matching the AnalysisPlan schema.
+You must output a single valid JSON object. Use EXACTLY the field names listed
+below and nothing else. Extra, misspelled, or inferred fields (such as
+"columns" or "aggregation_functions") are NOT permitted and will be rejected.
+
+### AnalysisPlan JSON Schema
+
+- **operation** (string, REQUIRED): one of
+  summarize, filter, aggregate, groupby, sort, top_n, correlation
+- **target_columns** (array of strings, optional, default []): columns directly
+  involved in the analysis. NOTE: there is NO field named "columns".
+- **group_by** (array of strings, optional, default []): columns used for
+  grouped aggregations or breakdowns.
+- **filters** (array of objects, optional, default []): each object has
+  "column" (string), "operator" (one of =, !=, >, <, >=, <=, contains), and
+  "value" (string/number/boolean/null).
+- **aggregation** (string, optional, default null): one of
+  sum, mean, median, count, min, max, std. NOTE: there is NO field named
+  "aggregation_functions".
+- **sort_by** (string, optional, default null): column used for sorting.
+- **sort_order** (string, optional, default null): one of asc, desc.
+- **limit** (integer > 0, optional, default null): max rows for sort/top_n.
+- **chart_type** (string, optional, default "none"): one of
+  none, bar, line, pie, scatter, histogram.
+- **explanation_required** (boolean, optional, default true).
+
+### Example
+
+For "What is the average salary by department?":
+
+{
+  "operation": "groupby",
+  "target_columns": ["salary"],
+  "group_by": ["department"],
+  "filters": [],
+  "aggregation": "mean",
+  "sort_by": null,
+  "sort_order": null,
+  "limit": null,
+  "chart_type": "bar",
+  "explanation_required": true
+}
+
+Output ONLY the JSON object with the exact field names above.
 """
 
 

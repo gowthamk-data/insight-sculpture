@@ -31,6 +31,7 @@ class LLMProvider(str, Enum):
 
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    GEMINI = "gemini"
 
 
 def _parse_bool(value: str | None, *, default: bool) -> bool:
@@ -71,11 +72,12 @@ class Settings(BaseModel):
     llm_provider: LLMProvider = Field(default=LLMProvider.OPENAI)
     openai_api_key: str | None = Field(default=None)
     anthropic_api_key: str | None = Field(default=None)
+    gemini_api_key: str | None = Field(default=None)
 
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000, ge=1, le=65535)
 
-    @field_validator("openai_api_key", "anthropic_api_key", mode="before")
+    @field_validator("openai_api_key", "anthropic_api_key", "gemini_api_key", mode="before")
     @classmethod
     def _empty_string_to_none(cls, value: object) -> str | None:
         """Treat blank API key strings as unset."""
@@ -95,6 +97,7 @@ class Settings(BaseModel):
         provider_key_map = {
             LLMProvider.OPENAI: ("OPENAI_API_KEY", self.openai_api_key),
             LLMProvider.ANTHROPIC: ("ANTHROPIC_API_KEY", self.anthropic_api_key),
+            LLMProvider.GEMINI: ("GEMINI_API_KEY", self.gemini_api_key),
         }
         env_name, api_key = provider_key_map[self.llm_provider]
         if not api_key:
@@ -122,9 +125,17 @@ class Settings(BaseModel):
                 raise RuntimeError("OpenAI API key is not configured.")
             return self.openai_api_key
 
-        if self.anthropic_api_key is None:
-            raise RuntimeError("Anthropic API key is not configured.")
-        return self.anthropic_api_key
+        if self.llm_provider == LLMProvider.ANTHROPIC:
+            if self.anthropic_api_key is None:
+                raise RuntimeError("Anthropic API key is not configured.")
+            return self.anthropic_api_key
+
+        if self.llm_provider == LLMProvider.GEMINI:
+            if self.gemini_api_key is None:
+                raise RuntimeError("Gemini API key is not configured.")
+            return self.gemini_api_key
+
+        raise RuntimeError(f"Unsupported LLM provider: {self.llm_provider}")
 
     @classmethod
     def from_env(cls) -> Self:
@@ -153,6 +164,7 @@ class Settings(BaseModel):
             ),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+            gemini_api_key=os.getenv("GEMINI_API_KEY"),
             host=os.getenv("HOST", "127.0.0.1"),
             port=port,
         )
