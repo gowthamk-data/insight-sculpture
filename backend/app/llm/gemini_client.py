@@ -52,7 +52,7 @@ class GeminiClient(BaseLLMClient):
     exceptions.
     """
 
-    DEFAULT_MODEL = "models/gemini-3.5-flash"
+    DEFAULT_MODEL = "models/gemini-3.1-flash-lite"
     DEFAULT_TIMEOUT = 60.0  # seconds
     DEFAULT_TEMPERATURE = 0.7
 
