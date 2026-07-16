@@ -257,7 +257,7 @@ class GeminiClient(BaseLLMClient):
 
         if max_tokens is not None:
             config.max_output_tokens = max_tokens
-
+            logger.info(f"Using Gemini model: {self._model}")
         return self._client.models.generate_content(
             model=self._model,
             contents=contents,
@@ -322,7 +322,7 @@ class GeminiClient(BaseLLMClient):
 
         if system_instruction:
             config.system_instruction = system_instruction
-
+        logger.info(f"Using Gemini model: {self._model}")
         return self._client.models.generate_content(
             model=self._model,
             contents=contents,
