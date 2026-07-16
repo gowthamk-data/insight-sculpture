@@ -410,7 +410,7 @@ class OpenAIClient(BaseLLMClient):
 
         Raises:
             EmptyResponseError: If content is empty or missing.
-            InvalidResponseError: If response structure is unexpected.
+            InvalidResponseError: If response is malformed.
             StructuredValidationError: If validation fails.
         """
         try:
@@ -419,7 +419,7 @@ class OpenAIClient(BaseLLMClient):
                 raise EmptyResponseError("LLM returned empty structured content.")
 
             try:
-                parsed_content = json.loads(content)
+                parsed_content = self._extract_first_json_object(content)
             except json.JSONDecodeError as exc:
                 raise InvalidResponseError(
                     f"LLM returned invalid JSON: {exc}"
@@ -436,6 +436,40 @@ class OpenAIClient(BaseLLMClient):
             raise InvalidResponseError(
                 f"Unexpected structured response structure from LLM: {exc}"
             ) from exc
+
+    def _extract_first_json_object(self, content: str) -> Any:
+        """Extract the first valid JSON object from a string.
+
+        Handles cases where the LLM appends trailing text or markdown
+        after the JSON object, which causes ``json.loads`` to raise
+        ``JSONDecodeError: Extra data``.
+
+        Args:
+            content: Raw response text that may contain extra content
+                before or after the JSON object.
+
+        Returns:
+            Parsed Python object from the first JSON object found.
+
+        Raises:
+            json.JSONDecodeError: If no valid JSON object can be extracted.
+        """
+        import json as _json
+
+        start = content.find("{")
+        if start == -1:
+            raise _json.JSONDecodeError("No JSON object found in response", content, 0)
+
+        for end in range(len(content), start, -1):
+            candidate = content[start:end]
+            try:
+                return _json.loads(candidate)
+            except _json.JSONDecodeError:
+                continue
+
+        raise _json.JSONDecodeError(
+            "No valid JSON object found in response", content, start
+        )
 
     def _extract_stream_content(self, chunk: ChatCompletionChunk) -> str:
         """Extract text content from a streaming chunk.

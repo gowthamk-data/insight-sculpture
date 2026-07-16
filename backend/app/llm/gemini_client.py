@@ -447,14 +447,14 @@ class GeminiClient(BaseLLMClient):
                         f"Failed to validate structured output: {exc}"
                     ) from exc
 
-            # Fallback: parse text manually
+            # Fallback: parse text manually, extracting only the first JSON object
             content = response.text
             logger.info("Gemini raw response:\n%s", content)
             if content is None or content.strip() == "":
                 raise EmptyResponseError("LLM returned empty structured content.")
 
             try:
-                parsed_content = json.loads(content)
+                parsed_content = self._extract_first_json_object(content)
             except json.JSONDecodeError as exc:
                 raise InvalidResponseError(
                     f"LLM returned invalid JSON: {exc}"
@@ -473,6 +473,38 @@ class GeminiClient(BaseLLMClient):
             raise InvalidResponseError(
                 f"Unexpected structured response structure from LLM: {exc}"
             ) from exc
+
+    def _extract_first_json_object(self, content: str) -> Any:
+        """Extract the first valid JSON object from a string.
+
+        Handles cases where the LLM appends trailing text or markdown
+        after the JSON object, which causes ``json.loads`` to raise
+        ``JSONDecodeError: Extra data``.
+
+        Args:
+            content: Raw response text that may contain extra content
+                before or after the JSON object.
+
+        Returns:
+            Parsed Python object from the first JSON object found.
+
+        Raises:
+            json.JSONDecodeError: If no valid JSON object can be extracted.
+        """
+        start = content.find("{")
+        if start == -1:
+            raise json.JSONDecodeError("No JSON object found in response", content, 0)
+
+        for end in range(len(content), start, -1):
+            candidate = content[start:end]
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                continue
+
+        raise json.JSONDecodeError(
+            "No valid JSON object found in response", content, start
+        )
 
     def _extract_stream_content(self, chunk: Any) -> str:
         """Extract text content from a streaming chunk.

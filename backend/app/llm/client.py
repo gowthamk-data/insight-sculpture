@@ -395,12 +395,12 @@ class LLMClient:
             if content is None or content.strip() == "":
                 raise EmptyResponseError("LLM returned empty structured content.")
 
-            # Parse JSON content
-            import json
+            # Parse JSON content, extracting only the first JSON object
+            import json as _json
 
             try:
-                parsed_content = json.loads(content)
-            except json.JSONDecodeError as exc:
+                parsed_content = self._extract_first_json_object(content)
+            except _json.JSONDecodeError as exc:
                 raise InvalidResponseError(
                     f"LLM returned invalid JSON: {exc}"
                 ) from exc
@@ -432,6 +432,40 @@ class LLMClient:
             return delta.content or ""
         except (IndexError, AttributeError):
             return ""
+
+    def _extract_first_json_object(self, content: str) -> Any:
+        """Extract the first valid JSON object from a string.
+
+        Handles cases where the LLM appends trailing text or markdown
+        after the JSON object, which causes ``json.loads`` to raise
+        ``JSONDecodeError: Extra data``.
+
+        Args:
+            content: Raw response text that may contain extra content
+                before or after the JSON object.
+
+        Returns:
+            Parsed Python object from the first JSON object found.
+
+        Raises:
+            json.JSONDecodeError: If no valid JSON object can be extracted.
+        """
+        import json as _json
+
+        start = content.find("{")
+        if start == -1:
+            raise _json.JSONDecodeError("No JSON object found in response", content, 0)
+
+        for end in range(len(content), start, -1):
+            candidate = content[start:end]
+            try:
+                return _json.loads(candidate)
+            except _json.JSONDecodeError:
+                continue
+
+        raise _json.JSONDecodeError(
+            "No valid JSON object found in response", content, start
+        )
 
     def _handle_api_error(self, exc: Exception) -> None:
         """Convert provider exceptions into clean application exceptions.

@@ -180,7 +180,7 @@ class AnalysisExplainer:
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 response_model=ExplanationResponse,
-                temperature=0.5,  # Balanced temperature for explanations
+                temperature=0.1,
             )
 
             # Convert to ExplanationResult
@@ -333,14 +333,16 @@ class AnalysisExplainer:
 
 ## Response Format
 
-You must respond with a valid JSON object containing:
+Output ONLY a valid JSON object. Do NOT include any text, markdown, code fences, or explanation outside the JSON object.
+
+The JSON object must contain exactly these fields:
 - explanation: The main natural-language explanation
 - summary: A concise summary of key findings
 - key_findings: List of important observations (3-5 items)
 - suggested_follow_up_questions: List of 3-5 suggested follow-up questions
 - confidence: One of "high", "medium", or "low"
 
-Ensure your response is valid JSON.
+Any text outside the JSON object will be rejected.
 """
 
         return user_prompt
