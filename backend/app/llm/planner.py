@@ -7,11 +7,13 @@ execute analytics, perform calculations, access DataFrames, or generate explanat
 
 from __future__ import annotations
 
+import difflib
 import logging
 from typing import Any
 
 from pydantic import ValidationError
 
+from app.core.exceptions import ColumnNotFoundError
 from app.llm.client import (
     AuthenticationError,
     EmptyResponseError,
@@ -395,14 +397,23 @@ class AnalysisPlanner:
             dataset_profile: Dataset profile containing available columns.
 
         Raises:
-            PlanningError: If any column does not exist in the dataset.
+            ColumnNotFoundError: If any column does not exist in the dataset.
         """
         available_columns = set(dataset_profile.get("columns", {}).keys())
         missing_columns = [col for col in columns if col not in available_columns]
 
         if missing_columns:
-            missing_str = ", ".join(missing_columns)
-            raise PlanningError(f"Columns not found in dataset: {missing_str}")
+            suggestions: dict[str, list[str]] = {}
+            for col in missing_columns:
+                matches = difflib.get_close_matches(col, available_columns, n=3, cutoff=0.6)
+                if matches:
+                    suggestions[col] = matches
+
+            raise ColumnNotFoundError(
+                column=missing_columns,
+                available_columns=list(available_columns),
+                details={"did_you_mean": suggestions} if suggestions else None,
+            )
 
     def _validate_filters(
         self, filters: list[Any], dataset_profile: dict[str, Any]
@@ -414,17 +425,22 @@ class AnalysisPlanner:
             dataset_profile: Dataset profile for column validation.
 
         Raises:
-            PlanningError: If filters are invalid.
+            ColumnNotFoundError: If a filter column does not exist in the dataset.
+            PlanningError: If a filter operator is invalid.
         """
         available_columns = set(dataset_profile.get("columns", {}).keys())
 
         for filter_condition in filters:
-            # Validate column exists
             column = getattr(filter_condition, "column", None)
             if column and column not in available_columns:
-                raise PlanningError(f"Filter column not found in dataset: {column}")
+                suggestions = difflib.get_close_matches(column, available_columns, n=3, cutoff=0.6)
+                details = {"did_you_mean": {column: suggestions}} if suggestions else None
+                raise ColumnNotFoundError(
+                    column=column,
+                    available_columns=list(available_columns),
+                    details=details,
+                )
 
-            # Validate operator
             operator = getattr(filter_condition, "operator", None)
             if operator and operator not in FilterOperator:
                 raise PlanningError(f"Unknown filter operator: {operator}")

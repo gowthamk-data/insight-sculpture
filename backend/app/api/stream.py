@@ -33,6 +33,7 @@ from app.core.dependencies import (
     get_planner,
     get_session_manager,
 )
+from app.core.exceptions import ColumnNotFoundError
 from app.executor import DataExecutor, ExecutionResult
 from app.llm.client import (
     AuthenticationError,
@@ -160,6 +161,9 @@ async def _stream_analysis_generator(
             return
         except InvalidDatasetProfileError as exc:
             yield _format_sse_event("error", {"message": f"Invalid dataset profile: {exc}"})
+            return
+        except ColumnNotFoundError as exc:
+            yield _format_sse_event("error", {"message": str(exc)})
             return
         except PlanningError as exc:
             yield _format_sse_event("error", {"message": f"Planning failed: {exc}"})

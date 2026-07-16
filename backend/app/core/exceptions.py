@@ -332,11 +332,14 @@ class ColumnNotFoundError(AnalyticsError):
 
     def __init__(
         self,
-        column: str,
+        column: str | list[str],
         available_columns: list[str] | None = None,
         details: dict[str, Any] | None = None,
     ) -> None:
-        message = f"Column not found: {column}"
+        if isinstance(column, list):
+            message = f"Columns not found: {', '.join(column)}"
+        else:
+            message = f"Column not found: {column}"
         error_details = details or {}
         error_details["column"] = column
         if available_columns:
