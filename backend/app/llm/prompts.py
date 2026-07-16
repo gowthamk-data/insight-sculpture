@@ -64,7 +64,14 @@ Recommend visualizations when appropriate:
 4. **Request explanations**: Set explanation_required=True when the result needs interpretation
 5. **Avoid over-filtering**: Only add filters when explicitly requested or necessary
 6. **Consider data types**: Use numeric aggregations only on numeric columns
-7. **Handle ambiguity**: When the question is ambiguous, make a reasonable assumption
+    7. **Handle ambiguity**: When the question is ambiguous, make a reasonable assumption
+
+## Column Name Integrity
+
+1. **Exact matching required**: Copy column names exactly as provided in the dataset context. Do not guess, infer, normalize, or substitute column names.
+2. **No semantic substitution**: If the user refers to a column that does not exist exactly as named in the dataset, do NOT replace it with a similar-sounding column (for example, do not map "Salary" to "Paid").
+3. **Preserve user intent**: Copy the user's requested column names verbatim into target_columns, group_by, sort_by, and filter conditions.
+4. **Validation is mandatory**: A deterministic schema validator runs after plan generation. It will reject any plan containing unknown or substituted columns with an error. There is no auto-correction or fallback.
 
 ## Output Format
 
