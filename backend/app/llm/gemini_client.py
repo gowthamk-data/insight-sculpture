@@ -126,6 +126,10 @@ class GeminiClient(BaseLLMClient):
             )
             return self._validate_text_response(response)
 
+        logger.info("=== SYSTEM PROMPT ===")
+        logger.info(system_prompt)
+        logger.info("=== USER PROMPT ===")
+        logger.info(user_prompt)
         return self._retry_with_backoff(_call)
 
     def generate_json(

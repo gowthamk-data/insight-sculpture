@@ -175,6 +175,15 @@ class AnalysisExplainer:
         user_prompt = self._prepare_prompt(
             original_question, operation, result_summary, conversation_history, dataset_context
         )
+        
+        logger.info("========== EXPLAINER SYSTEM PROMPT ==========")
+        logger.info(system_prompt)
+
+        logger.info("========== EXPLAINER USER PROMPT ==========")
+        logger.info(user_prompt)
+
+        logger.info("========== DATASET CONTEXT ==========")
+        logger.info(dataset_context)
 
         try:
             # Call LLM to generate structured explanation
