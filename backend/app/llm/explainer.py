@@ -138,6 +138,7 @@ class AnalysisExplainer:
         original_question: str,
         execution_result: Any,
         conversation_history: list[dict[str, str]] | None = None,
+        dataset_context: str | None = None,
     ) -> ExplanationResult:
         """Convert execution results into a natural-language explanation.
 
@@ -146,6 +147,7 @@ class AnalysisExplainer:
             execution_result: ExecutionResult from the analytics executor.
             conversation_history: Optional list of previous question/answer pairs
                 for follow-up context. Each dict should have 'question' and 'answer' keys.
+            dataset_context: Optional formatted dataset context string for grounding.
 
         Returns:
             An ExplanationResult containing the explanation and structured metadata.
@@ -171,7 +173,7 @@ class AnalysisExplainer:
         # Build prompts
         system_prompt = build_explainer_system_prompt()
         user_prompt = self._prepare_prompt(
-            original_question, operation, result_summary, conversation_history
+            original_question, operation, result_summary, conversation_history, dataset_context
         )
 
         try:
@@ -304,6 +306,7 @@ class AnalysisExplainer:
         operation: str,
         result_summary: str,
         conversation_history: list[dict[str, str]] | None = None,
+        dataset_context: str | None = None,
     ) -> str:
         """Prepare the user prompt for the LLM.
 
@@ -312,6 +315,7 @@ class AnalysisExplainer:
             operation: The analytics operation that was performed.
             result_summary: Formatted summary of execution results.
             conversation_history: Optional conversation history for follow-up context.
+            dataset_context: Optional formatted dataset context string for grounding.
 
         Returns:
             Complete user prompt string.
@@ -321,6 +325,7 @@ class AnalysisExplainer:
             question=original_question,
             operation=operation,
             result_summary=result_summary,
+            dataset_context=dataset_context,
         )
 
         # Add conversation history if provided

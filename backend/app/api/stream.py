@@ -49,7 +49,7 @@ from app.llm.planner import (
     InvalidQuestionError,
     PlanningError,
 )
-from app.llm.prompts import build_explainer_system_prompt, build_explainer_user_prompt
+from app.llm.prompts import build_dataset_context, build_explainer_system_prompt, build_explainer_user_prompt
 from app.session import DatasetSessionManager
 
 logger = logging.getLogger(__name__)
@@ -255,10 +255,20 @@ async def _stream_analysis_generator(
             result_summary = _prepare_result_summary(execution_result)
             operation = execution_result.metadata.get("operation", "unknown")
             system_prompt = build_explainer_system_prompt()
+            dataset_context = build_dataset_context(
+                columns=list(dataset_profile.get("columns", {}).keys()),
+                column_types={
+                    col: meta.get("semantic_type", "unknown")
+                    for col, meta in dataset_profile.get("columns", {}).items()
+                },
+                sample_rows=dataset_profile.get("sample_rows"),
+                row_count=dataset_profile.get("shape", {}).get("rows"),
+            )
             user_prompt = build_explainer_user_prompt(
                 question=request.question,
                 operation=operation,
                 result_summary=result_summary,
+                dataset_context=dataset_context,
             )
 
             # Stream explanation tokens

@@ -51,6 +51,7 @@ from app.llm.planner import (
     InvalidQuestionError,
     PlanningError,
 )
+from app.llm.prompts import build_dataset_context
 from app.session import DatasetSessionManager
 
 logger = logging.getLogger(__name__)
@@ -236,11 +237,21 @@ async def analyze(
         logger.error(f"Unexpected chart error: {exc}", exc_info=True)
 
     # Step 4: Generate explanation
+    dataset_context = build_dataset_context(
+        columns=list(dataset_profile.get("columns", {}).keys()),
+        column_types={
+            col: meta.get("semantic_type", "unknown")
+            for col, meta in dataset_profile.get("columns", {}).items()
+        },
+        sample_rows=dataset_profile.get("sample_rows"),
+        row_count=dataset_profile.get("shape", {}).get("rows"),
+    )
     try:
         explanation_result = explainer.explain(
             original_question=request.question,
             execution_result=execution_result,
             conversation_history=request.conversation_history,
+            dataset_context=dataset_context,
         )
         explanation_data = _serialize_explanation_result(explanation_result)
     except ExplainerInvalidExecutionResultError as exc:
