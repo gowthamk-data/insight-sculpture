@@ -127,6 +127,20 @@ class AnalysisPlanner:
         self._validate_question(user_question)
         self._validate_dataset_profile(dataset_profile)
 
+        # Deterministic schema resolution before any LLM work
+        from app.analytics.intent_extractor import resolve_schema_references
+
+        resolution = resolve_schema_references(user_question, dataset_profile)
+
+        if not resolution.resolved:
+            raise ColumnNotFoundError(
+                column=resolution.missing_columns,
+                available_columns=list(dataset_profile["columns"].keys()),
+                details={
+                    "did_you_mean": resolution.suggestions,
+                },
+            )
+
         # Prepare dataset context for the LLM
         dataset_context = self._prepare_dataset_context(dataset_profile)
 
