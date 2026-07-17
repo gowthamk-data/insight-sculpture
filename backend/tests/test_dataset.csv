@@ -1,0 +1,9 @@
+Sales,Profit,City,Status,age,amount,salary,name,Price,Score,Temperature,Returns,CustomerID,OrderID,Region,Department,Location,Category,Product,Month,Year,Revenue,Marketing Spend,OrderCount,Population,State,Segment,OrderValue,Date,Rating,Grade,Subject,TransactionID,Paid,Course,EmployeeID
+1000,200,Chennai,active,25,500,50000,John,100,85,30,0.05,C001,ORD001,North,Engineering,New York,Electronics,Widget A,Jan,2024,50000,10000,5,1000000,California,Consumer,250,2024-01-15,4.5,A,Math,TXN001,500,CS101,E001
+1500,350,Mumbai,cancelled,30,750,65000,Jane,200,92,32,0.03,C002,ORD002,South,Marketing,Chicago,Clothing,Widget B,Feb,2024,75000,15000,3,2000000,Texas,Corporate,300,2024-02-20,3.8,B,Science,TXN002,600,CS102,E002
+2000,500,Delhi,active,35,1000,75000,Bob,150,78,28,0.04,C003,ORD003,East,Sales,San Francisco,Electronics,Widget C,Mar,2024,60000,12000,8,1500000,New York,Consumer,400,2024-03-10,4.2,A,History,TXN003,700,CS103,E003
+2500,700,Chennai,pending,28,600,55000,Alice,300,95,35,0.06,C004,ORD004,West,Engineering,Seattle,Food,Widget D,Apr,2024,80000,20000,2,3000000,Florida,SMB,350,2024-04-05,4.8,C,Math,TXN004,800,CS104,E004
+3000,900,Mumbai,active,40,1200,80000,Charlie,250,88,27,0.02,C005,ORD005,North,HR,Boston,Clothing,Widget E,May,2024,90000,18000,6,2500000,Texas,Corporate,500,2024-05-15,4.0,B,Science,TXN005,900,CS105,E005
+1200,300,Delhi,cancelled,22,400,45000,Diana,180,75,33,0.07,C006,ORD006,South,Marketing,Denver,Electronics,Widget F,Jun,2024,45000,8000,4,1800000,California,Consumer,200,2024-06-20,3.5,A,English,TXN006,550,CS106,E006
+1800,600,Chennai,active,33,800,70000,Eve,220,90,29,0.01,C007,ORD007,East,Sales,Atlanta,Food,Widget G,Jul,2024,70000,14000,7,2200000,Florida,SMB,450,2024-07-10,4.6,C,Math,TXN007,650,CS107,E007
+2200,400,Mumbai,pending,27,650,60000,Frank,280,82,31,0.08,C008,ORD008,West,Engineering,Portland,Clothing,Widget H,Aug,2024,65000,11000,1,1600000,New York,Corporate,300,2024-08-25,3.9,B,Science,TXN008,750,CS108,E008

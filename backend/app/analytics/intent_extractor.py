@@ -17,6 +17,100 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Comprehensive stop-words & non-column-token filters
+# ---------------------------------------------------------------------------
+
+# Words that are never valid column names — common English filler, question
+# words, prepositions, articles, determiners, pronouns, conjunctions, etc.
+_STOP_WORDS: frozenset[str] = frozenset({
+    # Question words
+    "what", "which", "where", "when", "why", "how", "who", "whom", "whose",
+    # Articles & determiners
+    "the", "a", "an", "this", "that", "these", "those", "some", "any", "all",
+    "every", "each", "both", "no", "none", "several", "few", "many", "much",
+    "most", "more", "less",
+    # Prepositions
+    "in", "on", "at", "by", "for", "to", "from", "with", "without", "of",
+    "about", "above", "across", "after", "against", "along", "among",
+    "around", "before", "behind", "below", "beneath", "beside", "between",
+    "beyond", "during", "except", "inside", "into", "near", "off", "onto",
+    "outside", "over", "through", "under", "until", "up", "upon",
+    # Pronouns
+    "i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us",
+    "them", "my", "your", "his", "its", "our", "their", "mine", "yours",
+    "hers", "its", "ours", "theirs", "myself", "yourself", "himself",
+    "herself", "itself", "ourselves", "yourselves", "themselves",
+    # Conjunctions
+    "and", "or", "but", "nor", "yet", "so", "because", "since", "although",
+    "though", "while", "if", "unless", "as", "than", "then",
+    # Common verbs & auxiliary verbs
+    "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
+    "having", "do", "does", "did", "doing", "will", "would", "shall",
+    "should", "can", "could", "may", "might", "must", "need", "dare",
+    "show", "give", "get", "find", "list", "see", "view", "display",
+    "tell", "provide", "return", "calculate", "compute", "determine",
+    "show", "give", "get", "find", "list", "call", "make", "use", "want",
+    "like", "need", "take", "know", "think", "say", "look", "try",
+    "exclude", "include", "remove", "add", "select", "choose", "pick",
+    # Common nouns in analytics questions
+    "records", "data", "information", "result", "results", "value",
+    "values", "number", "numbers", "total", "sum", "average", "avg",
+    "mean", "median", "minimum", "maximum", "min", "max",
+    "count", "amount", "size",
+    # Sort-related terms that are not columns
+    "ascending", "descending", "alphabetical", "reverse",
+    "asc", "desc", "a-z", "z-a", "high", "low", "highest", "lowest",
+    "largest", "smallest", "biggest", "least", "greatest",
+    # Ranking / position words
+    "top", "bottom", "rank", "ranking", "ranked", "first", "last",
+    "next", "previous", "above", "below",
+    # Time-related filler words
+    "now", "today", "yesterday", "tomorrow", "currently", "recently",
+    "recent", "latest", "previous", "past", "future", "over", "last",
+    # General filler
+    "please", "kindly", "just", "only", "also", "still", "already",
+    "ever", "never", "always", "often", "sometimes", "usually",
+    "here", "there", "herein", "therein", "hereby", "thereby",
+    "per", "via", "versus", "vs",
+})
+
+
+def is_plausible_column_candidate(token: str) -> bool:
+    """Return True if *token* could plausibly be a dataset column name.
+
+    Filters out:
+      - Pure numeric values (int, float, negative numbers)
+      - Single-character tokens (abbreviated column names are typically ≥2 chars)
+      - Known stop words (English filler, operators, question words)
+      - Tokens that are operator symbols (=, !=, >, <, >=, <=)
+      - Tokens with non-alphanumeric characters (unless underscore)
+    """
+    if not token or not token.strip():
+        return False
+
+    # Reject pure numeric values (including negative, decimal)
+    try:
+        float(token)
+        return False
+    except ValueError:
+        pass
+
+    # Reject single-character tokens (meaningless as column names)
+    if len(token) <= 1:
+        return False
+
+    # Reject tokens that are operator symbols
+    if token in ("=", "!=", ">", "<", ">=", "<="):
+        return False
+
+    # Reject known stop words (case-insensitive)
+    if token.lower() in _STOP_WORDS:
+        return False
+
+    return True
+
+
 @dataclass
 class IntentReference:
     """Structured representation of an extracted intent from a user question.
@@ -265,6 +359,21 @@ def _resolve_schema_references(
     difflib.get_close_matches, but suggestions are never used to bypass
     validation or trigger automatic execution.
 
+    **Stop-word filtering**: Before validating against the schema, extracted
+    operands are filtered through ``is_plausible_column_candidate()`` to remove
+    natural-language tokens (stop words, numbers, operator symbols, etc.) that
+    the intent parser may have incorrectly flagged as column references. This
+    prevents ``ColumnNotFoundError`` exceptions from being raised for ordinary
+    English words.
+
+    **Fuzzy fallback for natural-language operands**: Even after stop-word
+    filtering, some plausible-sounding English words (e.g. "orders", "numeric",
+    "customers") may still pass through. These are not genuine column references
+    but rather natural-language nouns. If a missing operand has NO close fuzzy
+    match (``cutoff >= 0.7``) to any column in the dataset, it is treated as
+    natural language rather than a misspelled column, and silently dropped.
+    This ensures only genuinely misspelled or invalid column names are rejected.
+
     Args:
         user_question: The user's natural-language question.
         dataset_profile: Dataset metadata from DatasetProfiler, including the
@@ -280,18 +389,43 @@ def _resolve_schema_references(
     if not intent.operands:
         return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
 
-    missing_columns = [col for col in intent.operands if col not in available_columns]
+    # ---- CRITICAL FIX: Filter out non-column tokens before schema validation ----
+    # The intent parser uses heuristic keyword matching which can misidentify
+    # natural-language tokens (stop words, numbers, operator terms) as column
+    # references. We filter here to ensure only plausible column candidates
+    # reach the schema validator.
+    plausible_operands = [
+        operand for operand in intent.operands
+        if is_plausible_column_candidate(operand)
+    ]
+
+    if not plausible_operands:
+        # All extracted operands were non-column tokens → nothing to validate
+        return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
+
+    missing_columns: list[str] = []
+    suggestions: dict[str, list[str]] = {}
+
+    for col in plausible_operands:
+        # Exact match against dataset columns (case-sensitive per existing contracts)
+        if col in available_columns:
+            continue  # Known column → skip validation
+
+        # Check for close fuzzy matches using standard cutoff (0.6).
+        matches = difflib.get_close_matches(
+            col, list(available_columns), n=3, cutoff=0.6
+        )
+
+        if matches:
+            # Close match exists → likely a misspelling → report as error
+            missing_columns.append(col)
+            suggestions[col] = matches
+        else:
+            # No fuzzy match → genuine invalid column reference
+            missing_columns.append(col)
 
     if not missing_columns:
         return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
-
-    suggestions: dict[str, list[str]] = {}
-    for col in missing_columns:
-        matches = difflib.get_close_matches(
-            col, available_columns, n=3, cutoff=0.6
-        )
-        if matches:
-            suggestions[col] = matches
 
     return SchemaResolution(
         resolved=False,
