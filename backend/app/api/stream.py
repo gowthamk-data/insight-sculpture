@@ -163,7 +163,7 @@ async def _stream_analysis_generator(
             yield _format_sse_event("error", {"message": f"Invalid dataset profile: {exc}"})
             return
         except ColumnNotFoundError as exc:
-            yield _format_sse_event("error", {"message": str(exc)})
+            yield _format_sse_event("error", exc.to_dict())
             return
         except PlanningError as exc:
             yield _format_sse_event("error", {"message": f"Planning failed: {exc}"})

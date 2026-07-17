@@ -31,6 +31,7 @@ from app.core.dependencies import (
     get_planner,
     get_session_manager,
 )
+from app.core.exceptions import InsightSculptureError
 from app.executor import DataExecutor, ExecutionResult
 from app.llm.client import (
     AuthenticationError,
@@ -87,7 +88,41 @@ class AnalyzeResponse(BaseModel):
 router = APIRouter(prefix="/analyze", tags=["analyze"])
 
 
-@router.post("/", response_model=AnalyzeResponse, status_code=status.HTTP_200_OK)
+@router.post(
+    "/",
+    response_model=AnalyzeResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Bad request - invalid question or missing columns",
+            "model": dict,
+        },
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "LLM authentication failed",
+            "model": dict,
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Session or dataset profile not found",
+            "model": dict,
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Validation error - invalid dataset profile or analysis plan",
+            "model": dict,
+        },
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "description": "LLM rate limit exceeded",
+            "model": dict,
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Internal server error",
+            "model": dict,
+        },
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "description": "Service unavailable - LLM provider connection failed",
+            "model": dict,
+        },
+    },
+)
 async def analyze(
     request: AnalyzeRequest,
     session_manager: DatasetSessionManager = Depends(get_session_manager),
@@ -119,7 +154,7 @@ async def analyze(
         AnalyzeResponse containing the analysis plan, execution result, chart, explanation, and metadata.
 
     Raises:
-        HTTPException: For validation errors, session not found, or processing failures.
+        HTTPException: For validation errors, session not found, missing columns, or processing failures.
     """
     start_time = time.perf_counter()
 

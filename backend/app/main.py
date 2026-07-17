@@ -31,6 +31,7 @@ from pydantic import ValidationError
 
 from app.api import analyze_router, stream_router, upload_router
 from app.config import Environment, get_settings
+from app.core.exceptions import InsightSculptureError
 from app.llm.client import LLMError
 
 # Configure logging
@@ -271,6 +272,23 @@ def _register_exception_handlers(app: FastAPI) -> None:
                     "code": "LLM_ERROR",
                     "message": "An error occurred while communicating with the LLM provider",
                     "details": None,
+                },
+            },
+        )
+
+    # Analytics / Insight Sculpture errors
+    @app.exception_handler(InsightSculptureError)
+    async def insight_sculpture_exception_handler(request: Request, exc: InsightSculptureError):
+        """Handle Insight Sculpture domain errors with structured responses."""
+        logger.warning(f"Analytics error: {exc}")
+        return JSONResponse(
+            status_code=exc.http_status,
+            content={
+                "success": False,
+                "error": {
+                    "code": exc.error_code,
+                    "message": exc.message,
+                    "details": exc.details,
                 },
             },
         )
