@@ -148,11 +148,7 @@ class AnalysisPlanner:
                 response_model=AnalysisPlan,
                 temperature=0.3,  # Lower temperature for more deterministic planning
             )
-            self._validate_user_column_intent(
-                user_question,
-                analysis_plan,
-                dataset_profile,
-            )
+
             # Validate the generated plan
             return self._validate_analysis_plan(analysis_plan, dataset_profile)
 
