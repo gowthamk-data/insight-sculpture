@@ -100,26 +100,9 @@ below and nothing else. Extra, misspelled, or inferred fields (such as
   none, bar, line, pie, scatter, histogram.
 - **explanation_required** (boolean, optional, default true).
 
-### Example
-
-For "What is the average salary by department?":
-
-{
-  "operation": "groupby",
-  "target_columns": ["salary"],
-  "group_by": ["department"],
-  "filters": [],
-  "aggregation": "mean",
-  "sort_by": null,
-  "sort_order": null,
-  "limit": null,
-  "chart_type": "bar",
-  "explanation_required": true
-}
 
 Output ONLY the JSON object with the exact field names above.
 """
-
 
 def build_planner_user_prompt(
     question: str,
@@ -144,9 +127,16 @@ def build_planner_user_prompt(
 
 ## Task
 
-Based on the user's question and the dataset context, generate an AnalysisPlan that will answer the question.
+Generate an AnalysisPlan using ONLY the dataset columns provided above.
 
-Return your response as a valid JSON object.
+Important rules:
+- Treat the Dataset Context as the single source of truth.
+- Do not rename, normalize, infer, or substitute column names.
+- If the user refers to a column that is not present in the dataset, preserve that name exactly in the AnalysisPlan.
+- Do not replace unknown columns with similar existing columns.
+- Validation will determine whether referenced columns exist.
+
+Return ONLY a valid JSON object.
 """
 
 

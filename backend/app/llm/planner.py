@@ -137,13 +137,22 @@ class AnalysisPlanner:
 
         try:
             # Call LLM to generate AnalysisPlan
+            logger.info("========== PLANNER SYSTEM PROMPT ==========")
+            logger.info(system_prompt)
+
+            logger.info("========== PLANNER USER PROMPT ==========")
+            logger.info(user_prompt)
             analysis_plan = self._llm_client.generate_json(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 response_model=AnalysisPlan,
                 temperature=0.3,  # Lower temperature for more deterministic planning
             )
-
+            self._validate_user_column_intent(
+                user_question,
+                analysis_plan,
+                dataset_profile,
+            )
             # Validate the generated plan
             return self._validate_analysis_plan(analysis_plan, dataset_profile)
 
