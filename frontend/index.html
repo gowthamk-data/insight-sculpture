@@ -3,484 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Insight Sculpture - Conversational AI-Powered Data Analytics Platform">
-    <title>Insight Sculpture | AI-Powered Data Analytics</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
+    <meta name="description" content="AI-Powered Data Analytics Assistant - Upload CSV datasets and analyze them with natural language queries.">
+    <title>AI-Powered Data Analytics Assistant</title>
+
+    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+
     <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        },
-                    },
+                    }
                 }
             }
         }
     </script>
-    
-    <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Loading spinner */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-        
-        /* Typing indicator */
-        @keyframes bounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-4px); }
-        }
-        .typing-dot {
-            animation: bounce 1.4s infinite ease-in-out;
-        }
-        .typing-dot:nth-child(1) { animation-delay: 0s; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex items-center justify-center">
-        <div class="text-center">
-            <div class="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-slate-600 font-medium">Loading Insight Sculpture...</p>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header class="bg-white border-b border-slate-200 shadow-sm" role="banner">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                        AI-Powered Data Analytics Assistant
+                    </h1>
+                    <p class="mt-1 text-slate-600 text-sm sm:text-base">
+                        Upload a CSV dataset and ask questions in natural language.
+                    </p>
+                </div>
+                <div class="flex items-center">
+                    <span id="system-status" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                        Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" role="main">
+
+        <!-- ============================================================
+             DATASET MANAGEMENT CARD
+             ============================================================ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6" aria-labelledby="dataset-heading">
+            <h2 id="dataset-heading" class="text-lg font-semibold text-slate-900 mb-4">
+                Dataset
+            </h2>
+
+            <div class="flex flex-wrap items-center gap-3 mb-5">
+                <input type="file" id="csv-upload" class="hidden" accept=".csv" aria-label="Choose CSV file">
+                <button id="upload-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    Choose CSV
+                </button>
+                <button type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-700 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors">
+                    Preview Dataset
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Name</p>
+                    <p id="dataset-name" class="mt-1 text-sm font-semibold text-slate-900">-</p>
+                </div>
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Rows</p>
+                    <p id="dataset-rows" class="mt-1 text-sm font-semibold text-slate-900">-</p>
+                </div>
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Columns</p>
+                    <p id="dataset-columns" class="mt-1 text-sm font-semibold text-slate-900">-</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             ANALYTICS CHAT CARD
+             ============================================================ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6" aria-labelledby="chat-heading">
+            <h2 id="chat-heading" class="text-lg font-semibold text-slate-900 mb-4">
+                Ask Questions
+            </h2>
+
+            <label for="query-input" class="block text-sm font-medium text-slate-700 mb-2">
+                Query
+            </label>
+            <textarea id="query-input" rows="4" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm p-3 border" placeholder="Top 10 customers by total sales"></textarea>
+
+            <div class="mt-4 flex flex-wrap gap-3">
+                <button id="generate-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors">
+                    Generate Plan
+                </button>
+                <button id="clear-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-700 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors">
+                    Clear
+                </button>
+            </div>
+
+            <!-- Streaming Status: cohesive four-step stepper -->
+            <div id="stream-status" class="hidden mt-4">
+                <ol class="flex items-center gap-2 sm:gap-4 text-sm" aria-label="Analysis progress">
+                    <!-- Thinking -->
+                    <li class="flex items-center gap-2" id="status-thinking" data-step="thinking">
+                        <span class="step-icon relative flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-400 transition-all duration-300">
+                            <!-- idle: outlined circle -->
+                            <svg class="icon-idle h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+                            </svg>
+                            <!-- active: spinner -->
+                            <svg class="icon-active hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <!-- completed: green checkmark -->
+                            <svg class="icon-done hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="step-label hidden sm:inline text-slate-400 transition-colors duration-300">Thinking</span>
+                        <span class="step-connector hidden sm:block h-0.5 w-6 lg:w-10 bg-slate-200 transition-colors duration-300" aria-hidden="true"></span>
+                    </li>
+
+                    <!-- Planning -->
+                    <li class="flex items-center gap-2" id="status-planning" data-step="planning">
+                        <span class="step-icon relative flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-400 transition-all duration-300">
+                            <svg class="icon-idle h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+                            </svg>
+                            <svg class="icon-active hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <svg class="icon-done hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="step-label hidden sm:inline text-slate-400 transition-colors duration-300">Planning</span>
+                        <span class="step-connector hidden sm:block h-0.5 w-6 lg:w-10 bg-slate-200 transition-colors duration-300" aria-hidden="true"></span>
+                    </li>
+
+                    <!-- Executing -->
+                    <li class="flex items-center gap-2" id="status-executing" data-step="executing">
+                        <span class="step-icon relative flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-400 transition-all duration-300">
+                            <svg class="icon-idle h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+                            </svg>
+                            <svg class="icon-active hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <svg class="icon-done hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="step-label hidden sm:inline text-slate-400 transition-colors duration-300">Executing</span>
+                        <span class="step-connector hidden sm:block h-0.5 w-6 lg:w-10 bg-slate-200 transition-colors duration-300" aria-hidden="true"></span>
+                    </li>
+
+                    <!-- Completed -->
+                    <li class="flex items-center gap-2" id="status-completed" data-step="completed">
+                        <span class="step-icon relative flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-400 transition-all duration-300">
+                            <svg class="icon-idle h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+                            </svg>
+                            <svg class="icon-active hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <svg class="icon-done hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="step-label hidden sm:inline text-slate-400 transition-colors duration-300">Completed</span>
+                    </li>
+                </ol>
+            </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             RESULTS & OUTPUT SECTION
+             ============================================================ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200" aria-labelledby="results-heading">
+            <h2 id="results-heading" class="sr-only">Results & Output</h2>
+
+            <!-- Tabbed Navigation -->
+            <div class="border-b border-slate-200" role="tablist" aria-label="Results tabs">
+                <div class="flex flex-wrap -mb-px">
+                    <button type="button" role="tab" aria-selected="true" aria-controls="plan-container" id="tab-plan" class="tab-btn inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 border-b-2 border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                        Plan
+                    </button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="results-container" id="tab-results" class="tab-btn inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                        Results
+                    </button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="chart-container" id="tab-chart" class="tab-btn inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                        Chart
+                    </button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="json-container" id="tab-json" class="tab-btn inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                        Raw JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Panels -->
+            <div class="p-6">
+                <div id="plan-container" role="tabpanel" aria-labelledby="tab-plan" class="tab-panel">
+                    <p class="text-sm text-slate-500">No plan generated</p>
+                </div>
+                <div id="results-container" role="tabpanel" aria-labelledby="tab-results" class="tab-panel hidden">
+                    <p class="text-sm text-slate-500">No results available</p>
+                </div>
+                <div id="chart-container" role="tabpanel" aria-labelledby="tab-chart" class="tab-panel hidden">
+                    <p class="text-sm text-slate-500">No chart generated</p>
+                </div>
+                <div id="json-container" role="tabpanel" aria-labelledby="tab-json" class="tab-panel hidden">
+                    <p class="text-sm text-slate-500">No JSON data</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================================
+         LOADING OVERLAY
+         ============================================================ -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50" role="status" aria-live="polite" aria-label="Loading">
+        <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center gap-4">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" aria-hidden="true"></div>
+            <p class="text-sm font-medium text-slate-700">Generating analytics plan...</p>
         </div>
     </div>
 
-    <!-- Navigation Bar -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50" role="navigation" aria-label="Main navigation">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo and App Name -->
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-                        <i class="fa-solid fa-chart-line text-white text-lg" aria-hidden="true"></i>
-                    </div>
-                    <span class="text-xl font-semibold text-slate-900">Insight Sculpture</span>
-                </div>
-                
-                <!-- Navigation Actions -->
-                <div class="flex items-center space-x-4">
-                    <button id="theme-toggle" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Toggle theme">
-                        <i class="fa-solid fa-moon" aria-hidden="true"></i>
-                    </button>
-                    <a href="#" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" aria-label="GitHub repository">
-                        <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
-                    </a>
-                    <button id="about-button" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" aria-label="About">
-                        <i class="fa-solid fa-circle-info text-lg" aria-hidden="true"></i>
-                    </button>
-                </div>
+    <!-- ============================================================
+         NOTIFICATION
+         ============================================================ -->
+    <div id="notification" class="hidden fixed top-4 right-4 z-50 max-w-sm w-full" role="alert" aria-live="assertive">
+        <div class="bg-white rounded-lg shadow-lg border border-slate-200 p-4 flex items-start gap-3">
+            <div id="notification-icon" class="flex-shrink-0"></div>
+            <div class="flex-1">
+                <p id="notification-message" class="text-sm font-medium text-slate-900"></p>
             </div>
+            <button type="button" id="notification-close" class="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 rounded">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
-    </nav>
+    </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Hero Section -->
-        <section class="text-center mb-12" aria-labelledby="hero-heading">
-            <h1 id="hero-heading" class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
-                Insight Sculpture
-            </h1>
-            <p class="text-xl text-slate-600 mb-2">
-                Conversational AI-Powered Data Analytics Platform
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer class="bg-white border-t border-slate-200 mt-auto" role="contentinfo">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-sm text-slate-500 text-center">
+                AI-Powered Data Analytics Assistant
             </p>
-            <p class="text-slate-500 max-w-2xl mx-auto">
-                Upload your dataset and ask questions in natural language. Get instant insights, visualizations, and explanations powered by AI.
+            <p class="text-xs text-slate-400 text-center mt-1">
+                Powered by FastAPI • Gemini • Pandas
             </p>
-        </section>
-
-        <!-- Upload Card -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6" aria-labelledby="upload-heading">
-            <h2 id="upload-heading" class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="fa-solid fa-upload mr-2 text-primary-500" aria-hidden="true"></i>
-                Upload Dataset
-            </h2>
-            
-            <!-- Drag and Drop Area -->
-            <div id="upload-area" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-primary-400 hover:bg-primary-50 transition-colors cursor-pointer" role="button" tabindex="0" aria-label="Upload dataset area">
-                <div class="flex flex-col items-center">
-                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-400 mb-4" aria-hidden="true"></i>
-                    <p class="text-slate-600 mb-2">
-                        Drag and drop your dataset here
-                    </p>
-                    <p class="text-slate-400 text-sm mb-4">
-                        or click to browse
-                    </p>
-                    <input type="file" id="file-input" class="hidden" accept=".csv,.xlsx,.xls" aria-label="File input">
-                    <button id="upload-button" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                        Select File
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Supported Formats -->
-            <div class="mt-4 flex items-center justify-center space-x-4 text-sm text-slate-500">
-                <span>Supported formats:</span>
-                <span class="bg-slate-100 px-3 py-1 rounded-full">CSV</span>
-                <span class="bg-slate-100 px-3 py-1 rounded-full">Excel (.xlsx, .xls)</span>
-            </div>
-            
-            <!-- Upload Status -->
-            <div id="upload-status" class="mt-4 hidden" role="status" aria-live="polite">
-                <div class="flex items-center justify-between bg-slate-50 rounded-lg p-3">
-                    <div class="flex items-center space-x-3">
-                        <i class="fa-solid fa-file-csv text-slate-400" aria-hidden="true"></i>
-                        <div>
-                            <p id="selected-filename" class="text-sm font-medium text-slate-900"></p>
-                            <p id="upload-progress" class="text-xs text-slate-500"></p>
-                        </div>
-                    </div>
-                    <div id="upload-spinner" class="spinner text-primary-500 hidden">
-                        <i class="fa-solid fa-circle-notch" aria-hidden="true"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dataset Information Card -->
-        <section id="dataset-info" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 hidden" aria-labelledby="dataset-info-heading">
-            <h2 id="dataset-info-heading" class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="fa-solid fa-database mr-2 text-primary-500" aria-hidden="true"></i>
-                Dataset Information
-            </h2>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <p class="text-xs text-slate-500 mb-1">Dataset Name</p>
-                    <p id="dataset-name" class="font-medium text-slate-900 truncate"></p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <p class="text-xs text-slate-500 mb-1">Rows</p>
-                    <p id="dataset-rows" class="font-medium text-slate-900"></p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <p class="text-xs text-slate-500 mb-1">Columns</p>
-                    <p id="dataset-columns" class="font-medium text-slate-900"></p>
-                </div>
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <p class="text-xs text-slate-500 mb-1">Session ID</p>
-                    <p id="session-id" class="font-mono text-xs text-slate-900 truncate"></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Chat Section -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6" aria-labelledby="chat-heading">
-            <h2 id="chat-heading" class="text-lg font-semibold text-slate-900 p-6 pb-4">
-                <i class="fa-solid fa-comments mr-2 text-primary-500" aria-hidden="true"></i>
-                Conversation
-            </h2>
-            
-            <!-- Chat History -->
-            <div id="chat-history" class="h-96 overflow-y-auto px-6 pb-4 space-y-4" role="log" aria-live="polite">
-                <!-- Welcome Message -->
-                <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-robot text-white text-sm" aria-hidden="true"></i>
-                    </div>
-                    <div class="bg-slate-100 rounded-2xl rounded-tl-none px-4 py-3 max-w-2xl">
-                        <p class="text-slate-700">
-                            Welcome! Upload your dataset and ask me anything about your data. I'll help you analyze it with AI-powered insights.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Suggested Questions -->
-            <div id="suggested-questions" class="px-6 pb-4 hidden">
-                <p class="text-xs text-slate-500 mb-2">Suggested questions:</p>
-                <div class="flex flex-wrap gap-2">
-                    <button class="suggested-chip bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-sm transition-colors">
-                        Show me a summary of the data
-                    </button>
-                    <button class="suggested-chip bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-sm transition-colors">
-                        What are the key trends?
-                    </button>
-                    <button class="suggested-chip bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-sm transition-colors">
-                        Find any correlations
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Input Area -->
-            <div class="border-t border-slate-200 p-6">
-                <div class="flex space-x-4">
-                    <textarea 
-                        id="question-input" 
-                        class="flex-1 resize-none border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" 
-                        placeholder="Ask a question about your dataset..."
-                        rows="2"
-                        aria-label="Question input"
-                    ></textarea>
-                    <div class="flex flex-col space-y-2">
-                        <button id="send-button" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center" disabled aria-label="Send question">
-                            <i class="fa-solid fa-paper-plane mr-2" aria-hidden="true"></i>
-                            Send
-                        </button>
-                        <button id="clear-button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-2 rounded-xl font-medium transition-colors text-sm" aria-label="Clear conversation">
-                            <i class="fa-solid fa-trash mr-2" aria-hidden="true"></i>
-                            Clear
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
-                    <span>Press Enter to send, Shift+Enter for new line</span>
-                    <button id="microphone-button" class="hover:text-slate-600 transition-colors" aria-label="Voice input">
-                        <i class="fa-solid fa-microphone" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Visualization Section -->
-        <section id="visualization-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 hidden" aria-labelledby="visualization-heading">
-            <h2 id="visualization-heading" class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="fa-solid fa-chart-bar mr-2 text-primary-500" aria-hidden="true"></i>
-                Visualization
-            </h2>
-            
-            <div id="chart-container" class="h-96 flex items-center justify-center bg-slate-50 rounded-xl">
-                <p id="chart-placeholder" class="text-slate-400">
-                    <i class="fa-solid fa-chart-simple text-4xl mb-2 block text-center" aria-hidden="true"></i>
-                    No visualization yet. Ask a question to generate a chart.
-                </p>
-                <div id="chart-loading" class="hidden">
-                    <i class="fa-solid fa-circle-notch spinner text-4xl text-primary-500" aria-hidden="true"></i>
-                    <p class="text-slate-500 mt-2">Generating chart...</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Insights Section -->
-        <section id="insights-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 hidden" aria-labelledby="insights-heading">
-            <h2 id="insights-heading" class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="fa-solid fa-lightbulb mr-2 text-primary-500" aria-hidden="true"></i>
-                Insights
-            </h2>
-            
-            <div class="grid md:grid-cols-3 gap-4">
-                <!-- Summary Card -->
-                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                    <h3 class="font-medium text-blue-900 mb-2">
-                        <i class="fa-solid fa-clipboard-list mr-2" aria-hidden="true"></i>
-                        Summary
-                    </h3>
-                    <p id="insight-summary" class="text-sm text-blue-800"></p>
-                </div>
-                
-                <!-- Key Findings Card -->
-                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4">
-                    <h3 class="font-medium text-emerald-900 mb-2">
-                        <i class="fa-solid fa-star mr-2" aria-hidden="true"></i>
-                        Key Findings
-                    </h3>
-                    <ul id="insight-findings" class="text-sm text-emerald-800 space-y-1"></ul>
-                </div>
-                
-                <!-- Recommendations Card -->
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-                    <h3 class="font-medium text-purple-900 mb-2">
-                        <i class="fa-solid fa-arrow-trend-up mr-2" aria-hidden="true"></i>
-                        Recommendations
-                    </h3>
-                    <ul id="insight-recommendations" class="text-sm text-purple-800 space-y-1"></ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Data Preview Section -->
-        <section id="data-preview-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 hidden" aria-labelledby="data-preview-heading">
-            <h2 id="data-preview-heading" class="text-lg font-semibold text-slate-900 mb-4">
-                <i class="fa-solid fa-table mr-2 text-primary-500" aria-hidden="true"></i>
-                Data Preview
-            </h2>
-            
-            <div class="overflow-x-auto">
-                <table id="data-table" class="w-full text-sm text-left">
-                    <thead class="bg-slate-50 text-slate-700">
-                        <tr id="table-header">
-                            <!-- Headers will be populated by JavaScript -->
-                        </tr>
-                    </thead>
-                    <tbody id="table-body" class="text-slate-600">
-                        <!-- Rows will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center space-x-3 mb-4 md:mb-0">
-                    <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                        <i class="fa-solid fa-chart-line text-white text-sm" aria-hidden="true"></i>
-                    </div>
-                    <span class="text-sm font-medium text-slate-900">Insight Sculpture</span>
-                    <span class="text-xs text-slate-400">v1.0.0</span>
-                </div>
-                
-                <div class="flex items-center space-x-6 text-sm text-slate-500">
-                    <span>Built with</span>
-                    <span class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">FastAPI</span>
-                    <span class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">Python</span>
-                    <span class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">OpenAI</span>
-                    <span class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">Plotly</span>
-                </div>
-            </div>
         </div>
     </footer>
 
-    <!-- Modals -->
-    <!-- Error Modal -->
-    <div id="error-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="error-modal-title">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <i class="fa-solid fa-circle-exclamation text-red-500" aria-hidden="true"></i>
-                </div>
-                <h3 id="error-modal-title" class="text-lg font-semibold text-slate-900">Error</h3>
-            </div>
-            <p id="error-modal-message" class="text-slate-600 mb-6"></p>
-            <div class="flex justify-end">
-                <button id="error-modal-close" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium transition-colors">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Chart.js (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 id="settings-modal-title" class="text-lg font-semibold text-slate-900">Settings</h3>
-                <button id="settings-modal-close" class="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Close settings">
-                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">API Endpoint</label>
-                    <input type="text" id="api-endpoint" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="http://localhost:8000">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Theme</label>
-                    <select id="theme-select" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <option value="light">Light</option>
-                        <option value="dark">Dark</option>
-                        <option value="auto">System</option>
-                    </select>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end">
-                <button id="settings-modal-save" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                    Save
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- About Modal -->
-    <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 id="about-modal-title" class="text-lg font-semibold text-slate-900">About Insight Sculpture</h3>
-                <button id="about-modal-close" class="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Close about">
-                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="space-y-4 text-slate-600">
-                <p>
-                    Insight Sculpture is a conversational AI-powered data analytics platform that helps you understand your data through natural language queries.
-                </p>
-                <p>
-                    Upload your CSV or Excel files and ask questions in plain English. Our AI will analyze your data, generate visualizations, and provide clear explanations.
-                </p>
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <p class="text-sm font-medium text-slate-900 mb-2">Version 1.0.0</p>
-                    <p class="text-xs text-slate-500">Built with FastAPI, OpenAI, and Plotly</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Typing Indicator (hidden by default) -->
-    <div id="typing-indicator" class="hidden flex items-center space-x-2 px-6 pb-4">
-        <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <i class="fa-solid fa-robot text-white text-sm" aria-hidden="true"></i>
-        </div>
-        <div class="bg-slate-100 rounded-2xl rounded-tl-none px-4 py-3 flex space-x-1">
-            <div class="typing-dot w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div class="typing-dot w-2 h-2 bg-slate-400 rounded-full"></div>
-            <div class="typing-dot w-2 h-2 bg-slate-400 rounded-full"></div>
-        </div>
-    </div>
-
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    
-    <!-- Application Scripts -->
-    <script src="assets/js/api.js"></script>
-    <script src="assets/js/upload.js"></script>
-    <script src="assets/js/chat.js"></script>
-    <script src="assets/js/charts.js"></script>
-    <script src="assets/js/stream.js"></script>
-    <script src="assets/js/ui.js"></script>
-    <script src="assets/js/app.js"></script>
+    <!-- Application Script (ES modules) -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

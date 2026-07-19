@@ -342,12 +342,24 @@ async def _stream_text_async(
 
     stream = await loop.run_in_executor(None, _stream_sync)
 
-    while True:
+    # Sentinel marking end-of-stream. A StopIteration raised by next(stream)
+    # MUST be caught here and converted to this sentinel: when StopIteration is
+    # raised *inside* a coroutine submitted to loop.run_in_executor(), asyncio
+    # propagates it as "StopIteration interacts badly with generators and
+    # cannot be raised into a Future", which aborts the whole generator.
+    _SENTINEL = object()
+
+    def _next_token():
         try:
-            token = await loop.run_in_executor(None, next, stream)
-            yield token
+            return next(stream)
         except StopIteration:
+            return _SENTINEL
+
+    while True:
+        token = await loop.run_in_executor(None, _next_token)
+        if token is _SENTINEL:
             break
+        yield token
 
 
 def _format_sse_event(event_name: str, data: dict[str, Any]) -> str:

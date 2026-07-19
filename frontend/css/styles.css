@@ -1,0 +1,29 @@
+/* ============================================================
+   Insight Sculpture - Custom Stylesheet
+   ============================================================ */
+
+/* Add project-specific custom styles below.
+   Most styling is handled via Tailwind CSS utility classes. */
+
+/* Ensure hidden tab panels stay hidden even before JS initializes. */
+.tab-panel.hidden {
+    display: none;
+}
+
+/* Keep long JSON/code readable and wrappable on small screens. */
+#json-container pre {
+    white-space: pre;
+    word-break: normal;
+}
+
+@media (max-width: 640px) {
+    #json-container pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}
+
+/* Sticky table headers: guard against transparent backgrounds on scroll. */
+table thead.sticky th {
+    background-color: #f8fafc; /* slate-50 */
+}
