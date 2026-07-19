@@ -107,21 +107,52 @@ Output ONLY the JSON object with the exact field names above.
 def build_planner_user_prompt(
     question: str,
     dataset_context: str,
+    semantic_intent: Any = None,
 ) -> str:
     """Build the user prompt for the analysis planner LLM.
 
     Args:
         question: The user's natural language question about the dataset.
         dataset_context: Dataset metadata including columns, types, and sample data.
+        semantic_intent: Optional normalized intent with operational hints.
 
     Returns:
-        User prompt string with the question and dataset context.
+        User prompt string with the question, dataset context, and intent hints.
     """
+    # Build intent injection section if semantic intent is available
+    intent_section = ""
+    if semantic_intent:
+        hints = []
+        if semantic_intent.operation:
+            hints.append(f"- Detected operation: {semantic_intent.operation}")
+        if semantic_intent.target_columns:
+            hints.append(f"- Target columns: {', '.join(semantic_intent.target_columns)}")
+        if semantic_intent.group_by:
+            hints.append(f"- Group by columns: {', '.join(semantic_intent.group_by)}")
+        if semantic_intent.sort_by:
+            hints.append(f"- Sort by: {semantic_intent.sort_by}")
+        if semantic_intent.sort_order:
+            hints.append(f"- Sort order: {semantic_intent.sort_order}")
+        if semantic_intent.limit:
+            hints.append(f"- Limit: {semantic_intent.limit}")
+        if semantic_intent.hints:
+            hints.extend([f"- {h}" for h in semantic_intent.hints])
+
+        if hints:
+            intent_section = f"""## Operational Hints
+
+The following hints have been extracted from the user's question to guide plan generation:
+{chr(10).join(hints)}
+
+Use these hints to select the correct operation and columns. Do not ignore them.
+
+"""
+
     return f"""## User Question
 
 {question}
 
-## Dataset Context
+{intent_section}## Dataset Context
 
 {dataset_context}
 
@@ -135,6 +166,7 @@ Important rules:
 - If the user refers to a column that is not present in the dataset, preserve that name exactly in the AnalysisPlan.
 - Do not replace unknown columns with similar existing columns.
 - Validation will determine whether referenced columns exist.
+- Use the operational hints above to guide your selection of operation and columns.
 
 Return ONLY a valid JSON object.
 """

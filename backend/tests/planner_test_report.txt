@@ -1,1014 +1,152 @@
 ========================================================================
   Planner Capability Test Runner - Report
-  Generated: 2026-07-17 20:08:18
+  Generated: 2026-07-19 14:54:50
 ========================================================================
 
 OVERALL SUMMARY
 ----------------------------------------
   Total Tests : 62
-  Passed      : 0
-  Failed      : 62
-  Pass Rate   : 0.0%
+  Passed      : 62
+  Failed      : 0
+  Pass Rate   : 100.0%
 
 SUMMARY BY CATEGORY
 ----------------------------------------
-  ✗ Aggregation         :  0/ 8 (  0.0%)
-  ✗ Filtering           :  0/ 7 (  0.0%)
-  ✗ GroupBy             :  0/ 6 (  0.0%)
-  ✗ Sorting             :  0/ 5 (  0.0%)
-  ✗ Top N               :  0/ 4 (  0.0%)
-  ✗ Correlation         :  0/ 2 (  0.0%)
-  ✗ Mixed Queries       :  0/15 (  0.0%)
-  ✗ Edge Cases          :  0/15 (  0.0%)
+  ✓ Aggregation         :  8/ 8 (100.0%)
+  ✓ Filtering           :  7/ 7 (100.0%)
+  ✓ GroupBy             :  6/ 6 (100.0%)
+  ✓ Sorting             :  5/ 5 (100.0%)
+  ✓ Top N               :  4/ 4 (100.0%)
+  ✓ Correlation         :  2/ 2 (100.0%)
+  ✓ Mixed Queries       : 15/15 (100.0%)
+  ✓ Edge Cases          : 15/15 (100.0%)
 
 PER-TEST RESULTS
 ------------------------------------------------------------------------
-  [FAIL] AGG-01   | What is the total sales?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-02   | Calculate the average salary
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-03   | What is the mean temperature?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-04   | Find the median house price
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-05   | How many customers are there?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-06   | What is the minimum score?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-07   | What is the maximum profit?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] AGG-08   | What is the standard deviation of returns?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] FIL-01   | Show records where City = Chennai
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] FIL-02   | Exclude rows where Status = cancelled
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] FIL-03   | Show sales greater than 1000
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-
-
-  [FAIL] FIL-04   | Show records where age < 30
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] FIL-05   | Show orders with amount >= 500
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] FIL-06   | Show employees with salary <= 75000
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] FIL-07   | Show customers with name containing Smith
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] GRP-01   | Total sales by Region
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-
-
-  [FAIL] GRP-02   | Average salary by Department
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] GRP-03   | Count of orders by Customer
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: orders
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: orders
-
-
-  [FAIL] GRP-04   | Median price by Category
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] GRP-05   | Total sales by Region and Segment
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-
-
-  [FAIL] GRP-06   | Average score by Grade and Subject
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: score
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: score
-
-
-  [FAIL] SRT-01   | Sort by Date ascending
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] SRT-02   | Sort by Salary descending
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: Salary
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: Salary
-
-
-  [FAIL] SRT-03   | Order by Name A to Z
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: Name
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: Name
-
-
-  [FAIL] SRT-04   | Order by Score high to low
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] SRT-05   | Sort by Department then Salary descending
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] TOP-01   | Top 10 customers by sales
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: customers
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: customers
-
-
-  [FAIL] TOP-02   | Bottom 5 products by rating
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: products
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: products
-
-
-  [FAIL] TOP-03   | Top 3 highest paid employees
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: paid, employees
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: paid, employees
-
-
-  [FAIL] TOP-04   | Lowest 10 transaction amounts
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: transaction, amounts
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: transaction, amounts
-
-
-  [FAIL] COR-01   | Correlation between Age and Income
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] COR-02   | Show correlation matrix for all numeric columns
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] MIX-01   | Top 10 customers by total sales
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: customers
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: customers
-
-
-  [FAIL] MIX-02   | Average salary by department sorted descending
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] MIX-03   | Total sales for customers in Chennai
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: sales
-
-
-  [FAIL] MIX-04   | Count of orders by Region where Amount > 1000
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: orders
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: orders
-
-
-  [FAIL] MIX-05   | Top 5 products by sales in Electronics category
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: products
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: products
-
-
-  [FAIL] MIX-06   | Average salary by department for employees in Mumbai
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] MIX-07   | Show top 20 transactions sorted by date
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: transactions, sorted
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: transactions, sorted
-
-
-  [FAIL] MIX-08   | Total revenue by month for 2024
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: revenue
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: revenue
-
-
-  [FAIL] MIX-09   | Correlation between Marketing Spend and Revenue by Region
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] MIX-10   | Show customers with more than 5 orders
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] MIX-11   | Top 10 states by population
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: states
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: states
-
-
-  [FAIL] MIX-12   | Average order value by customer segment
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: order
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: order
-
-
-  [FAIL] MIX-13   | Show the highest paid employee in each department
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: paid, employee
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: paid, employee
-
-
-  [FAIL] MIX-14   | Number of transactions per day for the last week
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: day
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: day
-
-
-  [FAIL] MIX-15   | Products with price between 100 and 500 sorted by rating
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: rating
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: rating
-
-
-  [FAIL] EDGE-01  | How much money was collected?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-02  | Which course generated the highest revenue?
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: revenue
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: revenue
-
-
-  [FAIL] EDGE-03  | Show me everything
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-04  | Give me the data
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-05  | List all records
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-06  | What is the average?
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-07  | Group by
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-08  | Top N
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-09  | Sales by region over time
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-10  | Compare Age and Income
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-11  | Show paid amount
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-12  | Total salary by course
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-13  | Average of all numeric columns
-           Reason: Planner raised ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: numeric, columns
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 136, in plan
-    raise ColumnNotFoundError(
-app.core.exceptions.ColumnNotFoundError: [COLUMN_NOT_FOUND] Columns not found: numeric, columns
-
-
-  [FAIL] EDGE-14  | Filter out nulls
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-
-
-  [FAIL] EDGE-15  | Show me the top and bottom 5
-           Reason: Planner raised PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 548, in _retry_with_backoff
-    return func()
-           ^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\gemini_client.py", line 166, in _call
-    response = self._call_structured_completion(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-Traceback (most recent call last):
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\tests\run_planner_tests.py", line 549, in run_test
-    analysis_plan = planner.plan(
-                    ^^^^^^^^^^^^^
-  File "C:\Users\GOWTHAM\insight-sculpture\backend\app\llm\planner.py", line 177, in plan
-    raise PlanningError(f"LLM error during planning: {exc}") from exc
-app.llm.planner.PlanningError: LLM error during planning: Gemini client error: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'API key not valid. Please pass a valid API key.', 'status': 'INVALID_ARGUMENT', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'API_KEY_INVALID', 'domain': 'googleapis.com', 'metadata': {'service': 'generativelanguage.googleapis.com'}}, {'@type': 'type.googleapis.com/google.rpc.LocalizedMessage', 'locale': 'en-US', 'message': 'API key not valid. Please pass a valid API key.'}]}}
+  [PASS] AGG-01   | What is the total sales?
 
+  [PASS] AGG-02   | Calculate the average salary
+
+  [PASS] AGG-03   | What is the mean temperature?
+
+  [PASS] AGG-04   | Find the median house price
+
+  [PASS] AGG-05   | How many customers are there?
+
+  [PASS] AGG-06   | What is the minimum score?
+
+  [PASS] AGG-07   | What is the maximum profit?
+
+  [PASS] AGG-08   | What is the standard deviation of returns?
+
+  [PASS] FIL-01   | Show records where City = Chennai
+
+  [PASS] FIL-02   | Exclude rows where Status = cancelled
+
+  [PASS] FIL-03   | Show sales greater than 1000
+
+  [PASS] FIL-04   | Show records where age < 30
+
+  [PASS] FIL-05   | Show orders with amount >= 500
+
+  [PASS] FIL-06   | Show employees with salary <= 75000
+
+  [PASS] FIL-07   | Show customers with name containing Smith
+
+  [PASS] GRP-01   | Total sales by Region
+
+  [PASS] GRP-02   | Average salary by Department
+
+  [PASS] GRP-03   | Count of orders by Customer
+
+  [PASS] GRP-04   | Median price by Category
+
+  [PASS] GRP-05   | Total sales by Region and Segment
+
+  [PASS] GRP-06   | Average score by Grade and Subject
+
+  [PASS] SRT-01   | Sort by Date ascending
+
+  [PASS] SRT-02   | Sort by Salary descending
+
+  [PASS] SRT-03   | Order by Name A to Z
+
+  [PASS] SRT-04   | Order by Score high to low
+
+  [PASS] SRT-05   | Sort by Department then Salary descending
+
+  [PASS] TOP-01   | Top 10 customers by sales
+
+  [PASS] TOP-02   | Bottom 5 products by rating
+
+  [PASS] TOP-03   | Top 3 highest paid employees
+
+  [PASS] TOP-04   | Lowest 10 transaction amounts
+
+  [PASS] COR-01   | Correlation between Age and Income
+
+  [PASS] COR-02   | Show correlation matrix for all numeric columns
+
+  [PASS] MIX-01   | Top 10 customers by total sales
+
+  [PASS] MIX-02   | Average salary by department sorted descending
+
+  [PASS] MIX-03   | Total sales for customers in Chennai
+
+  [PASS] MIX-04   | Count of orders by Region where Amount > 1000
+
+  [PASS] MIX-05   | Top 5 products by sales in Electronics category
+
+  [PASS] MIX-06   | Average salary by department for employees in Mumbai
+
+  [PASS] MIX-07   | Show top 20 transactions sorted by date
+
+  [PASS] MIX-08   | Total revenue by month for 2024
+
+  [PASS] MIX-09   | Correlation between Marketing Spend and Revenue by Region
+
+  [PASS] MIX-10   | Show customers with more than 5 orders
+
+  [PASS] MIX-11   | Top 10 states by population
+
+  [PASS] MIX-12   | Average order value by customer segment
+
+  [PASS] MIX-13   | Show the highest paid employee in each department
+
+  [PASS] MIX-14   | Number of transactions per day for the last week
+
+  [PASS] MIX-15   | Products with price between 100 and 500 sorted by rating
+
+  [PASS] EDGE-01  | How much money was collected?
+
+  [PASS] EDGE-02  | Which course generated the highest revenue?
+
+  [PASS] EDGE-03  | Show me everything
+
+  [PASS] EDGE-04  | Give me the data
+
+  [PASS] EDGE-05  | List all records
+
+  [PASS] EDGE-06  | What is the average?
+
+  [PASS] EDGE-07  | Group by
+
+  [PASS] EDGE-08  | Top N
+
+  [PASS] EDGE-09  | Sales by region over time
+
+  [PASS] EDGE-10  | Compare Age and Income
+
+  [PASS] EDGE-11  | Show paid amount
+
+  [PASS] EDGE-12  | Total salary by course
+
+  [PASS] EDGE-13  | Average of all numeric columns
+
+  [PASS] EDGE-14  | Filter out nulls
+
+  [PASS] EDGE-15  | Show me the top and bottom 5
 
 ========================================================================
-  End of Report — 0/62 passed (0.0%)
+  End of Report — 62/62 passed (100.0%)
 ========================================================================

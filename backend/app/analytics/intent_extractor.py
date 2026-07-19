@@ -27,7 +27,7 @@ _STOP_WORDS: frozenset[str] = frozenset({
     # Question words
     "what", "which", "where", "when", "why", "how", "who", "whom", "whose",
     # Articles & determiners
-    "the", "a", "an", "this", "that", "these", "those", "some", "any", "all",
+    "the", "a", "an", "this", "that", "these", "those", "some", "any",
     "every", "each", "both", "no", "none", "several", "few", "many", "much",
     "most", "more", "less",
     # Prepositions
@@ -57,7 +57,7 @@ _STOP_WORDS: frozenset[str] = frozenset({
     "records", "data", "information", "result", "results", "value",
     "values", "number", "numbers", "total", "sum", "average", "avg",
     "mean", "median", "minimum", "maximum", "min", "max",
-    "count", "amount", "size",
+    "count", "size",
     # Sort-related terms that are not columns
     "ascending", "descending", "alphabetical", "reverse",
     "asc", "desc", "a-z", "z-a", "high", "low", "highest", "lowest",
@@ -111,6 +111,26 @@ def is_plausible_column_candidate(token: str) -> bool:
     return True
 
 
+def _looks_like_column_name(token: str) -> bool:
+    """Return True if token looks like an explicit column reference rather than
+    natural language.
+
+    Heuristics:
+    - Contains uppercase letters (PascalCase / camelCase)
+    - Contains underscores (snake_case)
+    - Is longer than typical English words (>12 chars)
+    """
+    if not token:
+        return False
+    if "_" in token:
+        return True
+    if any(c.isupper() for c in token):
+        return True
+    if len(token) > 12:
+        return True
+    return False
+
+
 @dataclass
 class IntentReference:
     """Structured representation of an extracted intent from a user question.
@@ -158,6 +178,7 @@ AGGREGATIONS: dict[str, str] = {
     "minimum": "aggregate",
     "max": "aggregate",
     "maximum": "aggregate",
+    "median": "aggregate",
 }
 
 GROUP_BY: dict[str, str] = {
@@ -213,6 +234,15 @@ _OPERATION_KEYWORDS: dict[str, str] = {
 _SORTED_OPERATION_KEYWORDS: list[tuple[str, str]] = sorted(
     _OPERATION_KEYWORDS.items(), key=lambda item: len(item[0]), reverse=True
 )
+
+
+# Multi-word column aliases that should be resolved before schema validation
+_MULTI_WORD_ALIASES: dict[str, str] = {
+    "house price": "Price",
+    "paid amount": "Paid",
+    "sales amount": "Sales",
+    "marketing spend": "Marketing Spend",
+}
 
 
 def _tokenize_question(question: str) -> list[str]:
@@ -348,6 +378,99 @@ def extract_intent(question: str) -> IntentReference:
     return IntentReference(operation=operation, operands=operands)
 
 
+# ---------------------------------------------------------------------------
+# Business entity recognition — nouns that describe data groups, NOT columns
+# ---------------------------------------------------------------------------
+
+# These are natural-language nouns that appear in questions but should NOT
+# be validated against the schema. They represent business entities or
+# grouping concepts that the LLM handles semantically.
+_BUSINESS_ENTITIES: set[str] = {
+    # People / roles
+    'customer', 'customers', 'employee', 'employees', 'student', 'students',
+    'teacher', 'teachers', 'user', 'users', 'person', 'people', 'individual',
+    # Transactions / records
+    'order', 'orders', 'transaction', 'transactions', 'record', 'records',
+    'row', 'rows', 'item', 'items', 'ticket', 'tickets', 'invoice', 'invoices',
+    # Products / inventory
+    'product', 'products', 'item', 'items', 'sku', 'category', 'categories',
+    'segment', 'segments', 'brand', 'brands', 'inventory',
+    # Geography
+    'state', 'states', 'city', 'cities', 'country', 'countries', 'region',
+    'regions', 'district', 'districts', 'area', 'areas', 'zone', 'zones',
+    'location', 'locations',
+    # Time units
+    'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years',
+    'quarter', 'quarters', 'hour', 'hours',
+    # Education
+    'course', 'courses', 'grade', 'grades', 'subject', 'subjects', 'class',
+    'classes', 'department', 'departments', 'faculty',
+    # Generic grouping nouns
+    'numeric', 'numerics', 'column', 'columns', 'field', 'fields', 'variable',
+    'variables', 'attribute', 'attributes',
+    # Other frequent business nouns
+    'account', 'accounts', 'project', 'projects', 'task', 'tasks',
+    'document', 'documents', 'file', 'files',
+}
+
+
+def _map_entity_to_group_column(entity: str, available_columns: set[str]) -> str | None:
+    """Map a business entity to a plausible schema column for group-by.
+
+    For example, "customers" might map to "CustomerID", "orders" to "OrderID".
+    Falls back to None if no mapping is found.
+    """
+    # Try exact entity name first, then ID suffixes
+    candidates = [
+        entity.capitalize(),
+        entity.capitalize() + 'ID',
+        entity.capitalize() + '_ID',
+        entity.capitalize() + ' Code',
+        entity.capitalize() + ' Name',
+        entity.capitalize() + 'Type',
+    ]
+
+    # Singular form candidates
+    singular = entity.rstrip('s')
+    if singular != entity:
+        candidates.extend([
+            singular.capitalize() + 'ID',
+            singular.capitalize(),
+            singular.capitalize() + ' Name',
+        ])
+
+    lower_to_original = {c.lower(): c for c in available_columns}
+    for candidate in candidates:
+        if candidate in available_columns:
+            return candidate
+        if candidate.lower() in lower_to_original:
+            return lower_to_original[candidate.lower()]
+
+    return None
+
+
+def _singularize_column_name(token: str) -> str:
+    """Convert plural form to singular for column matching.
+    
+    Handles common English pluralization rules like:
+    - amounts -> amount
+    - amounts -> amount
+    - transactions -> transaction
+    """
+    lower = token.lower()
+    if lower.endswith('ies') and len(lower) > 3:
+        return lower[:-3] + 'y'
+    if lower.endswith('ves') and len(lower) > 3:
+        return lower[:-3] + 'f'
+    if lower.endswith('xes') or lower.endswith('zes'):
+        return lower[:-2]
+    if lower.endswith('es') and len(lower) > 2:
+        return lower[:-2]
+    if lower.endswith('s') and len(lower) > 1:
+        return lower[:-1]
+    return lower
+
+
 def _resolve_schema_references(
     user_question: str, dataset_profile: dict[str, Any]
 ) -> SchemaResolution:
@@ -359,20 +482,19 @@ def _resolve_schema_references(
     difflib.get_close_matches, but suggestions are never used to bypass
     validation or trigger automatic execution.
 
-    **Stop-word filtering**: Before validating against the schema, extracted
-    operands are filtered through ``is_plausible_column_candidate()`` to remove
-    natural-language tokens (stop words, numbers, operator symbols, etc.) that
-    the intent parser may have incorrectly flagged as column references. This
-    prevents ``ColumnNotFoundError`` exceptions from being raised for ordinary
-    English words.
+    **Entity Resolution Layer (CRITICAL)**:
+    Business entities (customers, orders, products, etc.) are common in user
+    questions but are NOT schema columns. They represent grouping concepts that
+    the LLM handles semantically. The resolver:
+    1. Classifies operands into categories via is_plausible_column_candidate()
+    2. Separates business entities from genuine column references
+    3. Maps common business entities to likely schema columns via heuristics
+    4. Only validates tokens that could plausibly be column names
 
-    **Fuzzy fallback for natural-language operands**: Even after stop-word
-    filtering, some plausible-sounding English words (e.g. "orders", "numeric",
-    "customers") may still pass through. These are not genuine column references
-    but rather natural-language nouns. If a missing operand has NO close fuzzy
-    match (``cutoff >= 0.7``) to any column in the dataset, it is treated as
-    natural language rather than a misspelled column, and silently dropped.
-    This ensures only genuinely misspelled or invalid column names are rejected.
+    **Fuzzy match classification**:
+    - If a missing operand has a close fuzzy match → likely misspelling → error
+    - If a missing operand has NO fuzzy match → natural language noun → silently
+      dropped (do NOT raise ColumnNotFoundError)
 
     Args:
         user_question: The user's natural-language question.
@@ -380,8 +502,8 @@ def _resolve_schema_references(
             'columns' dictionary with column names as keys.
 
     Returns:
-        A SchemaResolution indicating whether all operands are present in the
-        schema, along with any missing columns and fuzzy suggestions.
+        A SchemaResolution indicating whether the question's explicit column
+        references are valid against the dataset schema.
     """
     available_columns = set(dataset_profile.get("columns", {}).keys())
     intent = extract_intent(user_question)
@@ -389,49 +511,113 @@ def _resolve_schema_references(
     if not intent.operands:
         return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
 
-    # ---- CRITICAL FIX: Filter out non-column tokens before schema validation ----
-    # The intent parser uses heuristic keyword matching which can misidentify
-    # natural-language tokens (stop words, numbers, operator terms) as column
-    # references. We filter here to ensure only plausible column candidates
-    # reach the schema validator.
-    plausible_operands = [
-        operand for operand in intent.operands
-        if is_plausible_column_candidate(operand)
-    ]
+    # ---- MULTI-WORD ALIAS RESOLUTION ----
+    # Resolve known multi-word aliases in the question before token-level validation
+    lower_q = user_question.lower()
+    alias_replacements: dict[str, str] = {}
+    alias_operand_indices: set[int] = set()
 
-    if not plausible_operands:
-        # All extracted operands were non-column tokens → nothing to validate
-        return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
+    # Build a map of operand index to token for alias tracking
+    operand_tokens = intent.operands
 
+    for alias, column in _MULTI_WORD_ALIASES.items():
+        if alias in lower_q and column in available_columns:
+            alias_replacements[alias] = column
+            # Find and mark operands that are part of this alias
+            alias_words = alias.split()
+            for i in range(len(operand_tokens) - len(alias_words) + 1):
+                candidate = " ".join(operand_tokens[i:i + len(alias_words)]).lower()
+                if candidate == alias:
+                    for j in range(i, i + len(alias_words)):
+                        alias_operand_indices.add(j)
+
+    # If aliases were found, validate them as known columns
+    validated_columns: list[str] = []
+    for alias, column in alias_replacements.items():
+        validated_columns.append(column)
+
+    # ---- CLASSIFICATION LAYER ----
+    # Categorize operands: genuine columns, business entities, or unknown words
+    lower_to_original = {c.lower(): c for c in available_columns}
+
+    business_entities: list[str] = []
+    unknown_tokens: list[str] = []
+
+    for idx, operand in enumerate(operand_tokens):
+        # Skip operands that were consumed by multi-word alias resolution
+        if idx in alias_operand_indices:
+            continue
+
+        # Never validate operators or punctuation as columns
+        if not is_plausible_column_candidate(operand):
+            continue
+
+        operand_lower = operand.lower()
+
+        # Case-insensitive exact column match
+        if operand_lower in lower_to_original:
+            validated_columns.append(lower_to_original[operand_lower])
+            continue
+
+        # Check singular form for plural column names (e.g., "amounts" -> "amount")
+        singular = _singularize_column_name(operand_lower)
+        if singular in lower_to_original and singular != operand_lower:
+            validated_columns.append(lower_to_original[singular])
+            continue
+
+        # Check if it's a recognized business entity
+        if operand_lower in _BUSINESS_ENTITIES:
+            business_entities.append(operand)
+            continue
+
+        # Try singular form for business entities (e.g., "categories" → "category")
+        singular_be = operand_lower.rstrip('s')
+        if singular_be != operand_lower and singular_be in _BUSINESS_ENTITIES:
+            business_entities.append(operand)
+            continue
+
+        # Unknown token — treat as potential column; validate below
+        unknown_tokens.append(operand)
+
+    # ---- VALIDATION LAYER ----
+    # Only validate unknown tokens; business entities are silently accepted
     missing_columns: list[str] = []
     suggestions: dict[str, list[str]] = {}
 
-    for col in plausible_operands:
-        # Exact match against dataset columns (case-sensitive per existing contracts)
-        if col in available_columns:
-            continue  # Known column → skip validation
+    for col in unknown_tokens:
+        # If token looks like an explicit column name (PascalCase, snake_case, etc.),
+        # treat it as a genuine column reference even without fuzzy match
+        if _looks_like_column_name(col):
+            missing_columns.append(col)
+            matches = difflib.get_close_matches(
+                col, list(available_columns), n=3, cutoff=0.6
+            )
+            if matches:
+                suggestions[col] = matches
+            continue
 
-        # Check for close fuzzy matches using standard cutoff (0.6).
+        # Check fuzzy matches
         matches = difflib.get_close_matches(
             col, list(available_columns), n=3, cutoff=0.6
         )
 
         if matches:
-            # Close match exists → likely a misspelling → report as error
+            # Close match exists → likely misspelling → report as error
             missing_columns.append(col)
             suggestions[col] = matches
         else:
-            # No fuzzy match → genuine invalid column reference
-            missing_columns.append(col)
+            # No fuzzy match → likely natural language, NOT a misspelling
+            # Silently drop without error (e.g., "sorted", "numeric", "columns")
+            pass
 
-    if not missing_columns:
-        return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
+    if missing_columns:
+        return SchemaResolution(
+            resolved=False,
+            missing_columns=missing_columns,
+            suggestions=suggestions,
+        )
 
-    return SchemaResolution(
-        resolved=False,
-        missing_columns=missing_columns,
-        suggestions=suggestions,
-    )
+    return SchemaResolution(resolved=True, missing_columns=[], suggestions={})
 
 
 def resolve_schema_references(

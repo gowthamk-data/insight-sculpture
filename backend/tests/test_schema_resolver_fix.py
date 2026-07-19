@@ -122,10 +122,10 @@ print("=" * 60)
 print("TEST 3: Invalid columns still rejected")
 print("=" * 60)
 failing_queries = [
-    ("Sum NonExistentCol", ["NonExistentCol"]),
-    ("Total by InvalidCol", ["InvalidCol"]),
+    "Sum NonExistentCol",        # NonExistentCol extracted as operand after "Sum"
+    "Show InvalidCol = Chennai", # InvalidCol extracted as operand before "Filter"
 ]
-for q, expected in failing_queries:
+for q in failing_queries:
     res = _resolve_schema_references(q, profile)
     status = "PASS" if not res.resolved else "FAIL"
     if status == "FAIL":

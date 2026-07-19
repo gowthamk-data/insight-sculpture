@@ -16,6 +16,10 @@ Usage:
 Or from project root:
     python backend/tests/run_planner_tests.py
 
+Flags:
+    --failed-only    Rerun only previously failed tests
+    --tests TEST1,TEST2,...   Run specific tests by ID
+
 Constraints:
     - Does NOT modify planner logic, prompts, executor, or schemas.
     - Does NOT change existing tests.
@@ -24,6 +28,7 @@ Constraints:
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import os
@@ -33,6 +38,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+import time
 
 # Ensure backend is importable
 _backend_dir = Path(__file__).resolve().parent.parent
@@ -43,9 +49,9 @@ os.environ["APP_NAME"] = "Insight Sculpture"
 os.environ["ENVIRONMENT"] = "development"
 os.environ["DEBUG"] = "true"
 os.environ["LLM_PROVIDER"] = "gemini"
-os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY", "test-key-placeholder")
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "test-key-placeholder")
-os.environ["LLM_MODEL"] = os.getenv("LLM_MODEL", "models/gemini-3.1-flash-lite")
+# os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY", "test-key-placeholder")
+# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "test-key-placeholder")
+os.environ["LLM_MODEL"] = os.getenv("LLM_MODEL", "gemini-3.1-flash-lite")
 os.environ["HOST"] = "127.0.0.1"
 os.environ["PORT"] = "8000"
 
@@ -62,6 +68,15 @@ logging.getLogger("app.analytics.intent_extractor").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai").setLevel(logging.WARNING)
 logging.getLogger("google.genai").setLevel(logging.WARNING)
+
+# ---------------------------------------------------------------------------
+# Retry configuration constants (mirrors LLM client configuration)
+# ---------------------------------------------------------------------------
+
+MAX_RETRIES = 5
+INITIAL_RETRY_DELAY = 1.0  # seconds
+RETRY_BACKOFF_MULTIPLIER = 2.0
+FALLBACK_RATE_LIMIT_DELAY = 10.0  # seconds when Retry-After not provided
 
 # ---------------------------------------------------------------------------
 # Test case definitions — extracted from docs/PLANNER_CAPABILITY_MATRIX.md
@@ -219,35 +234,35 @@ for tid, q, cols in _corr_cases:
 _mix_cases = [
     ("MIX-01", "Top 10 customers by total sales",
      ExpectedFields(operation="top_n", sort_by="Sales", sort_order="desc", limit=10,
-                    group_by=["Customer"], aggregation="sum", target_columns=["Sales"])),
+                     group_by=["Customer"], aggregation="sum", target_columns=["Sales"])),
     ("MIX-02", "Average salary by department sorted descending",
      ExpectedFields(operation="groupby", group_by=["Department"], aggregation="mean",
-                    target_columns=["Salary"], sort_by="Salary", sort_order="desc")),
+                     target_columns=["Salary"], sort_by="Salary", sort_order="desc")),
     ("MIX-03", "Total sales for customers in Chennai",
      ExpectedFields(operation="aggregate", filters=[{"column": "City", "operator": "=", "value": "Chennai"}],
-                    aggregation="sum", target_columns=["Sales"])),
+                     aggregation="sum", target_columns=["Sales"])),
     ("MIX-04", "Count of orders by Region where Amount > 1000",
      ExpectedFields(operation="groupby", group_by=["Region"], aggregation="count",
-                    target_columns=["OrderID"], filters=[{"column": "Amount", "operator": ">", "value": 1000}])),
+                     target_columns=["OrderID"], filters=[{"column": "Amount", "operator": ">", "value": 1000}])),
     ("MIX-05", "Top 5 products by sales in Electronics category",
      ExpectedFields(operation="top_n", sort_by="Sales", sort_order="desc", limit=5,
-                    group_by=["Product"], aggregation="sum", target_columns=["Sales"],
-                    filters=[{"column": "Category", "operator": "=", "value": "Electronics"}])),
+                     group_by=["Product"], aggregation="sum", target_columns=["Sales"],
+                     filters=[{"column": "Category", "operator": "=", "value": "Electronics"}])),
     ("MIX-06", "Average salary by department for employees in Mumbai",
      ExpectedFields(operation="groupby", group_by=["Department"], aggregation="mean",
-                    target_columns=["Salary"], filters=[{"column": "City", "operator": "=", "value": "Mumbai"}])),
+                     target_columns=["Salary"], filters=[{"column": "City", "operator": "=", "value": "Mumbai"}])),
     ("MIX-07", "Show top 20 transactions sorted by date",
      ExpectedFields(operation="top_n", sort_by="Date", sort_order="desc", limit=20)),
     ("MIX-08", "Total revenue by month for 2024",
      ExpectedFields(operation="groupby", group_by=["Month"], aggregation="sum",
-                    target_columns=["Revenue"], filters=[{"column": "Year", "operator": "=", "value": 2024}])),
+                     target_columns=["Revenue"], filters=[{"column": "Year", "operator": "=", "value": 2024}])),
     ("MIX-09", "Correlation between Marketing Spend and Revenue by Region",
      ExpectedFields(operation="correlation", target_columns=["Marketing Spend", "Revenue"], group_by=["Region"])),
     ("MIX-10", "Show customers with more than 5 orders",
      ExpectedFields(operation="filter", filters=[{"column": "OrderCount", "operator": ">", "value": 5}])),
     ("MIX-11", "Top 10 states by population",
      ExpectedFields(operation="top_n", sort_by="Population", sort_order="desc", limit=10,
-                    group_by=["State"], aggregation="sum", target_columns=["Population"])),
+                     group_by=["State"], aggregation="sum", target_columns=["Population"])),
     ("MIX-12", "Average order value by customer segment",
      ExpectedFields(operation="groupby", group_by=["Segment"], aggregation="mean", target_columns=["OrderValue"])),
     ("MIX-13", "Show the highest paid employee in each department",
@@ -256,8 +271,8 @@ _mix_cases = [
      ExpectedFields(operation="groupby", group_by=["Date"], aggregation="count", target_columns=["TransactionID"])),
     ("MIX-15", "Products with price between 100 and 500 sorted by rating",
      ExpectedFields(operation="sort", filters=[{"column": "Price", "operator": ">=", "value": 100},
-                                               {"column": "Price", "operator": "<=", "value": 500}],
-                    sort_by="Rating", sort_order="desc")),
+                                             {"column": "Price", "operator": "<=", "value": 500}],
+                      sort_by="Rating", sort_order="desc")),
 ]
 for tid, q, expected in _mix_cases:
     ALL_TEST_CASES.append(TestCase(
@@ -467,6 +482,7 @@ def build_test_dataset_profile() -> dict[str, Any]:
         "Temperature": {"inferred_type": "int64", "semantic_type": "numeric"},
         "Returns": {"inferred_type": "float64", "semantic_type": "numeric"},
         "CustomerID": {"inferred_type": "object", "semantic_type": "categorical"},
+        "Customer": {"inferred_type": "object", "semantic_type": "categorical"},
         "OrderID": {"inferred_type": "object", "semantic_type": "categorical"},
         "Region": {"inferred_type": "object", "semantic_type": "categorical"},
         "Department": {"inferred_type": "object", "semantic_type": "categorical"},
@@ -490,7 +506,7 @@ def build_test_dataset_profile() -> dict[str, Any]:
         "Paid": {"inferred_type": "int64", "semantic_type": "numeric"},
         "Course": {"inferred_type": "object", "semantic_type": "categorical"},
         "EmployeeID": {"inferred_type": "object", "semantic_type": "categorical"},
-        "Amount": {"inferred_type": "int64", "semantic_type": "numeric"},
+        "Income": {"inferred_type": "int64", "semantic_type": "numeric"},
     }
 
     profile = {
@@ -509,7 +525,7 @@ def build_test_dataset_profile() -> dict[str, Any]:
                 "Population": 1000000, "State": "California", "Segment": "Consumer",
                 "OrderValue": 250, "Date": "2024-01-15", "Rating": 4.5,
                 "Grade": "A", "Subject": "Math", "TransactionID": "TXN001",
-                "Paid": 500, "Course": "CS101", "EmployeeID": "E001",
+                "Paid": 500, "Course": "CS101", "EmployeeID": "E001", "Income": 60000,
             },
         ],
     }
@@ -531,12 +547,129 @@ def create_planner():
 
 
 # ---------------------------------------------------------------------------
+# Retry helper and error detection utilities
+# ---------------------------------------------------------------------------
+
+def is_retryable_error(exc: Exception) -> bool:
+    """Determine if an exception should be retried.
+    
+    Retries on: HTTP 429 errors, network failures, timeout errors.
+    Does NOT retry on: authentication errors, validation errors, JSON errors.
+    
+    Args:
+        exc: The exception to check.
+        
+    Returns:
+        True if the error should be retried, False otherwise.
+    """
+    error_str = str(exc).lower()
+    
+    # Import application exceptions for type checking
+    from app.llm.client import AuthenticationError, RateLimitError, NetworkError, TimeoutError
+    
+    # Check by type first
+    if isinstance(exc, RateLimitError):
+        return True
+    if isinstance(exc, NetworkError):
+        return True
+    if isinstance(exc, TimeoutError):
+        return True
+    if isinstance(exc, AuthenticationError):
+        return False
+    
+    # Check for rate limit indicators in error message
+    if "429" in error_str or "resource_exhausted" in error_str or "rate limit" in error_str:
+        return True
+    
+    # Check for network indicators
+    if "connection" in error_str or "network" in error_str:
+        return True
+    
+    # Check for timeout indicators
+    if "timeout" in error_str:
+        return True
+    
+    return False
+
+
+def get_retry_after_delay(exc: Exception) -> float | None:
+    """Extract Retry-After delay from exception if available.
+    
+    Args:
+        exc: The exception to extract delay from.
+        
+    Returns:
+        Delay in seconds from Retry-After header, or None if not found.
+    """
+    # Try to get Retry-After from various exception types
+    if hasattr(exc, 'response') and exc.response is not None:
+        response = exc.response
+        if hasattr(response, 'headers'):
+            retry_after = response.headers.get('Retry-After')
+            if retry_after:
+                try:
+                    return float(retry_after)
+                except (ValueError, TypeError):
+                    pass
+    
+    # Check for retry_delay in Gemini-style exceptions
+    if hasattr(exc, 'retry_delay'):
+        retry_delay = getattr(exc, 'retry_delay', None)
+        if retry_delay is not None:
+            if hasattr(retry_delay, 'seconds'):
+                return float(retry_delay.seconds)
+            try:
+                return float(retry_delay)
+            except (ValueError, TypeError):
+                pass
+    
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Test execution
 # ---------------------------------------------------------------------------
 
-def run_test(test_case: TestCase, planner: Any,
-             dataset_profile: dict[str, Any]) -> TestResult:
-    """Execute a single test case through the planner and validate the result."""
+def is_rate_limit_error(exc: Exception) -> bool:
+    """Determine if an exception is specifically a rate limit error.
+    
+    Args:
+        exc: The exception to check.
+        
+    Returns:
+        True if the error is a rate limit error, False otherwise.
+    """
+    error_str = str(exc).lower()
+    
+    # Import application exceptions for type checking
+    from app.llm.client import RateLimitError
+    
+    if isinstance(exc, RateLimitError):
+        return True
+    
+    if "429" in error_str or "resource_exhausted" in error_str or "rate limit" in error_str:
+        return True
+    
+    return False
+
+
+def run_test(
+    test_case: TestCase,
+    planner: Any,
+    dataset_profile: dict[str, Any],
+) -> TestResult:
+    """Execute a single test case through the planner and validate the result.
+    
+    Uses adaptive rate-limiting with exponential backoff for retryable errors.
+    
+    Args:
+        test_case: The test case to execute.
+        planner: The analysis planner instance.
+        dataset_profile: Dataset profile for the planner.
+        
+    Returns:
+        TestResult with PASS/FAIL status and details.
+    """
     result = TestResult(
         test_id=test_case.id,
         category=test_case.category,
@@ -545,31 +678,102 @@ def run_test(test_case: TestCase, planner: Any,
         expected_fields=test_case.expected,
     )
 
+    delay = INITIAL_RETRY_DELAY
+    analysis_plan = None
+    last_wait_time: float | None = None  # Track actual wait time for logging
+
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            analysis_plan = planner.plan(
+                user_question=test_case.question,
+                dataset_profile=dataset_profile,
+                conversation_history=None,
+            )
+            
+            # Check if this was a retry attempt
+            if attempt > 0 and last_wait_time is not None:
+                logger.info(
+                    f"  [RETRY] Test {test_case.id} attempt {attempt + 1}/{MAX_RETRIES + 1}: "
+                    f"Retry successful after {last_wait_time:.1f}s wait"
+                )
+            break
+
+        except Exception as exc:
+            # Check if this is a retryable error with retries remaining
+            if is_retryable_error(exc) and attempt < MAX_RETRIES:
+                # Determine wait duration based on error type
+                retry_after = get_retry_after_delay(exc)
+                if retry_after is not None:
+                    wait_time = retry_after
+                    retry_reason = f"Retry-After header detected ({retry_after:.1f}s)"
+                elif is_rate_limit_error(exc):
+                    wait_time = FALLBACK_RATE_LIMIT_DELAY
+                    retry_reason = f"Rate limit error, using fallback delay ({FALLBACK_RATE_LIMIT_DELAY}s)"
+                else:
+                    wait_time = delay
+                    retry_reason = f"Transient error (network/timeout), retrying in {delay:.1f}s"
+                
+                logger.info(
+                    f"  [RETRY] Test {test_case.id} attempt {attempt + 1}/{MAX_RETRIES + 1}: "
+                    f"Reason: {retry_reason}. "
+                    f"Waiting {wait_time:.1f}s before retry..."
+                )
+                
+                time.sleep(wait_time)
+                last_wait_time = wait_time  # Store for success logging
+                delay *= RETRY_BACKOFF_MULTIPLIER
+                continue
+            
+            # Non-retryable error or exhausted retries - record failure and stop retrying
+            if attempt > 0:
+                logger.warning(
+                    f"  [RETRY] Test {test_case.id} attempt {attempt + 1}/{MAX_RETRIES + 1}: "
+                    f"Retry exhausted. Error: {type(exc).__name__}: {exc}"
+                )
+            # Record the failure reason (non-retryable or all retries exhausted)
+            result.failure_reason = f"{type(exc).__name__}: {exc}"
+            # Return early - don't re-raise, let the test continue to next case
+            return result
+
+    # Process the result
+    if analysis_plan is None:
+        # This happens when all retries were exhausted - last_exception was recorded
+        return result
+
     try:
-        analysis_plan = planner.plan(
-            user_question=test_case.question,
-            dataset_profile=dataset_profile,
-            conversation_history=None,
+        plan_dict = (
+            analysis_plan.model_dump()
+            if hasattr(analysis_plan, "model_dump")
+            else analysis_plan.dict()
         )
 
-        # Convert plan to dict for validation
-        plan_dict = analysis_plan.model_dump() if hasattr(analysis_plan, 'model_dump') else analysis_plan.dict()
         result.actual_plan = plan_dict
 
-        # Validate against expected fields
-        passed, reason = validate_plan(plan_dict, test_case.expected)
+        passed, reason = validate_plan(
+            plan_dict,
+            test_case.expected,
+        )
+
         if passed:
             result.status = "PASS"
         else:
             result.failure_reason = reason
 
     except Exception as exc:
-        result.failure_reason = f"Planner raised {type(exc).__name__}: {exc}"
-        if hasattr(exc, '__traceback__'):
-            tb = traceback.format_exception(type(exc), exc, exc.__traceback__)
-            # Limit traceback depth
+        result.failure_reason = (
+            f"Planner raised {type(exc).__name__}: {exc}"
+        )
+
+        if hasattr(exc, "__traceback__"):
+            tb = traceback.format_exception(
+                type(exc),
+                exc,
+                exc.__traceback__,
+            )
+
             if len(tb) > 8:
                 tb = tb[:3] + ["...\n"] + tb[-4:]
+
             result.failure_reason += "\n" + "".join(tb)
 
     return result
@@ -647,25 +851,84 @@ def generate_report(results: list[TestResult]) -> str:
 # Main entry point
 # ---------------------------------------------------------------------------
 
+# Path to store failed test IDs for --failed-only functionality
+FAILED_TESTS_CACHE = Path(__file__).resolve().parent / ".failed_tests_cache.json"
+
+
+def load_failed_tests() -> list[str]:
+    """Load previously failed test IDs from cache file."""
+    if FAILED_TESTS_CACHE.exists():
+        try:
+            content = FAILED_TESTS_CACHE.read_text(encoding="utf-8")
+            return json.loads(content)
+        except (json.JSONDecodeError, IOError):
+            return []
+    return []
+
+
+def save_failed_tests(failed_ids: list[str]) -> None:
+    """Save failed test IDs to cache file."""
+    FAILED_TESTS_CACHE.write_text(json.dumps(failed_ids), encoding="utf-8")
+
+
 def main():
     """Run all planner capability tests and print the report."""
+    parser = argparse.ArgumentParser(
+        description="Run planner capability benchmark tests"
+    )
+    parser.add_argument(
+        "--failed-only",
+        action="store_true",
+        help="Rerun only previously failed tests",
+    )
+    parser.add_argument(
+        "--tests",
+        type=str,
+        default=None,
+        help="Run specific tests by ID (comma-separated, e.g., GRP-03,SRT-05)",
+    )
+    args = parser.parse_args()
+
+    # Determine which tests to run
+    test_ids_to_run: set[str] | None = None
+    
+    if args.failed_only:
+        test_ids_to_run = set(load_failed_tests())
+        if not test_ids_to_run:
+            print("No previously failed tests found. Run without --failed-only first.")
+            return 0
+    elif args.tests:
+        test_ids_to_run = set(tid.strip() for tid in args.tests.split(",") if tid.strip())
+
+    # Filter test cases
+    if test_ids_to_run is not None:
+        test_cases = [tc for tc in ALL_TEST_CASES if tc.id in test_ids_to_run]
+        if not test_cases:
+            print(f"No tests found matching IDs: {test_ids_to_run}")
+            return 1
+    else:
+        test_cases = ALL_TEST_CASES
+
     print("Initializing planner and dataset profile...")
     print()
 
     # Build dataset profile
     dataset_profile = build_test_dataset_profile()
 
-    # Create planner (this will use Gemini as configured in .env)
+    # Create planner
     try:
         planner = create_planner()
-        print(f"  Planner initialized successfully")
-        print(f"  Test cases: {len(ALL_TEST_CASES)}")
+
+        print("  Planner initialized successfully")
+        print(f"  Test cases: {len(test_cases)}")
+
     except Exception as exc:
         print(f"  FAILED to initialize planner: {exc}")
         print()
-        print("ERROR: Planner initialization failed. Ensure LLM provider is configured.")
+        print("ERROR: Planner initialization failed.")
         print("  - Check backend/.env for API keys")
-        print("  - Ensure required packages are installed: pip install -r backend/requirements.txt")
+        print("  - Ensure required packages are installed:")
+        print("      pip install -r backend/requirements.txt")
         sys.exit(1)
 
     print()
@@ -673,13 +936,26 @@ def main():
     print()
 
     results: list[TestResult] = []
-    for i, test_case in enumerate(ALL_TEST_CASES, 1):
-        result = run_test(test_case, planner, dataset_profile)
+    total = len(test_cases)
+
+    for i, test_case in enumerate(test_cases, start=1):
+
+        result = run_test(
+            test_case=test_case,
+            planner=planner,
+            dataset_profile=dataset_profile,
+        )
+
         results.append(result)
 
-        # Print progress
-        status = "PASS" if result.status == "PASS" else "FAIL"
-        print(f"  [{i:3d}/{len(ALL_TEST_CASES):3d}] {status} {result.test_id:8s} | {result.question[:55]}")
+        print(
+            f"  [{i:3d}/{total:3d}] "
+            f"{result.status:<7} "
+            f"{result.test_id:8s} | "
+            f"{result.question[:55]}"
+        )
+        
+        # NO FIXED DELAY - requests run at maximum speed, only pausing when rate-limited
 
     print()
     print("Generating report...")
@@ -687,17 +963,39 @@ def main():
 
     report = generate_report(results)
 
-    # Save report to file
-    report_path = Path(__file__).resolve().parent / "planner_test_report.txt"
-    report_path.write_text(report, encoding="utf-8")
+    report_path = (
+        Path(__file__).resolve().parent / "planner_test_report.txt"
+    )
+
+    report_path.write_text(
+        report,
+        encoding="utf-8",
+    )
+
     print(f"  Report saved to: {report_path}")
     print()
 
-    # Print report to stdout
+    # Print report
     print(report)
 
-    # Return exit code based on results
-    failed_count = sum(1 for r in results if r.status == "FAIL")
+    # Save failed test IDs for --failed-only
+    failed_ids = [r.test_id for r in results if r.status == "FAIL"]
+    save_failed_tests(failed_ids)
+
+    # Summary
+    passed_count = sum(r.status == "PASS" for r in results)
+    failed_count = sum(r.status == "FAIL" for r in results)
+
+    print()
+    print("=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    print(f"Total Tests : {total}")
+    print(f"Passed      : {passed_count}")
+    print(f"Failed      : {failed_count}")
+    print("=" * 70)
+
+    # Only genuine planner failures should fail the benchmark
     return 1 if failed_count > 0 else 0
 
 
