@@ -1,23 +1,32 @@
-"""LLM provider client for communicating with configured language models."""
+"""Gemini client for communicating with Google's Gemini API.
+
+This module provides the only LLM client implementation, using the official
+google-genai SDK for all text, JSON, and streaming operations.
+"""
 
 from __future__ import annotations
 
+import json
 import logging
-from enum import Enum
+import os
+import time
 from typing import Any, Iterator
 
-from openai import OpenAI, Stream
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from google import genai
+from google.genai import types as genai_types
+from google.genai.errors import ClientError, ServerError
 from pydantic import BaseModel, ValidationError
-from pydantic.json_schema import JsonSchemaValue
-
-from app.config import LLMProvider, get_settings
 
 logger = logging.getLogger(__name__)
 
+# Retry configuration
+MAX_RETRIES = 3
+INITIAL_RETRY_DELAY = 1.0  # seconds
+RETRY_BACKOFF_MULTIPLIER = 2.0
+
 
 class LLMError(Exception):
-    """Base exception for LLM client errors."""
+    """Base exception for Gemini client errors."""
 
     pass
 
@@ -47,13 +56,13 @@ class TimeoutError(LLMError):
 
 
 class EmptyResponseError(LLMError):
-    """Raised when LLM returns empty or null content."""
+    """Raised when Gemini returns empty or null content."""
 
     pass
 
 
 class InvalidResponseError(LLMError):
-    """Raised when LLM response is malformed or invalid."""
+    """Raised when Gemini response is malformed or invalid."""
 
     pass
 
@@ -64,74 +73,69 @@ class StructuredValidationError(LLMError):
     pass
 
 
-class LLMClient:
-    """Client for communicating with configured LLM providers.
+class GeminiClient:
+    """Client for communicating with Google Gemini's API.
 
-    This class manages all communication with the LLM provider. It is
-    intentionally separated from analytics logic, prompt engineering,
-    and FastAPI integration.
+    This class manages all communication with the Gemini API using the official
+    google-genai SDK. It implements retry logic with exponential backoff for
+    transient errors and converts SDK exceptions into application exceptions.
 
     The client is initialized once and reused for all requests to avoid
     unnecessary overhead.
     """
 
-    # Default model names for each provider
-    DEFAULT_MODELS: dict[LLMProvider, str] = {
-        LLMProvider.OPENAI: "gpt-4o",
-        LLMProvider.ANTHROPIC: "claude-3-5-sonnet-20240620",
-        LLMProvider.GEMINI: "models/gemini-3.1-flash-lite",
-    }
+    DEFAULT_MODEL = "models/gemini-3.1-flash-lite"
+    DEFAULT_TIMEOUT = 60.0  # seconds
+    DEFAULT_TEMPERATURE = 0.7
 
-    def __init__(self) -> None:
-        """Initialize the LLM client with configuration from settings."""
-        self._settings = get_settings()
-        self._provider = self._settings.llm_provider
-        self._api_key = self._settings.active_api_key
-        self._model = self._get_model_name()
-        self._timeout = 60.0  # Default timeout in seconds
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        timeout: float | None = None,
+    ) -> None:
+        """Initialize the Gemini client.
 
-        self._client: OpenAI | None = None
-        self._initialize_client()
+        Args:
+            api_key: Gemini API key. If None, loads from GEMINI_API_KEY env.
+            model: Model name to use. If None, loads from GEMINI_MODEL env or default.
+            timeout: Request timeout in seconds. If None, uses default.
 
-    def _initialize_client(self) -> None:
-        """Initialize the appropriate provider client based on configuration."""
-        if self._provider == LLMProvider.OPENAI:
-            self._client = OpenAI(api_key=self._api_key, timeout=self._timeout)
-        elif self._provider == LLMProvider.ANTHROPIC:
-            # Anthropic client will be added when needed
-            # For now, raise an error if Anthropic is selected
-            raise NotImplementedError(
-                "Anthropic provider is not yet implemented. "
-                "Please use OpenAI provider or implement Anthropic support."
-            )
-        else:
-            raise ValueError(f"Unsupported LLM provider: {self._provider}")
+        Raises:
+            ValueError: If API key is not configured.
+        """
+        # Load configuration
+        self._api_key = api_key or os.getenv("GEMINI_API_KEY")
+        if not self._api_key:
+            raise ValueError("GEMINI_API_KEY is required. Set it in environment variables.")
 
-    def _get_model_name(self) -> str:
-        """Get the model name from settings or use default."""
-        # Check if there's a model setting in environment
-        import os
+        self._model = model or self._get_model_from_settings()
+        self._timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
 
-        model_from_env = os.getenv("LLM_MODEL")
+        # Initialize Gemini client once
+        self._client = genai.Client(api_key=self._api_key)
+
+    def _get_model_from_settings(self) -> str:
+        """Get model name from environment settings or use default."""
+        model_from_env = os.getenv("GEMINI_MODEL")
         if model_from_env:
             return model_from_env.strip()
-
-        return self.DEFAULT_MODELS.get(self._provider, "gpt-4o")
+        return self.DEFAULT_MODEL
 
     def generate_text(
         self,
         system_prompt: str,
         user_prompt: str,
-        temperature: float = 0.7,
+        temperature: float = DEFAULT_TEMPERATURE,
         max_tokens: int | None = None,
     ) -> str:
-        """Generate text from the LLM.
+        """Generate text from Gemini with retry logic.
 
         Args:
             system_prompt: System-level instructions for the LLM.
             user_prompt: User query or input for the LLM.
-            temperature: Sampling temperature (0.0 to 2.0). Lower is more deterministic.
-            max_tokens: Maximum tokens to generate. None uses provider default.
+            temperature: Sampling temperature (0.0 to 2.0).
+            max_tokens: Maximum tokens to generate.
 
         Returns:
             The generated text content as a string.
@@ -142,35 +146,35 @@ class LLMClient:
             NetworkError: If network communication fails.
             TimeoutError: If request times out.
             EmptyResponseError: If LLM returns empty content.
-            InvalidResponseError: If response is malformed.
+            InvalidResponseError: If response structure is unexpected.
             LLMError: For other LLM-related errors.
         """
         messages = self._build_messages(system_prompt, user_prompt)
 
-        try:
+        def _call() -> str:
             response = self._call_chat_completion(
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            return self._validate_response(response)
-        except Exception as exc:
-            self._handle_api_error(exc)
+            return self._validate_text_response(response)
+
+        return self._retry_with_backoff(_call)
 
     def generate_json(
         self,
         system_prompt: str,
         user_prompt: str,
         response_model: type[BaseModel],
-        temperature: float = 0.7,
+        temperature: float = DEFAULT_TEMPERATURE,
     ) -> BaseModel:
-        """Generate structured JSON output validated against a Pydantic model.
+        """Generate structured JSON output with retry logic.
 
         Args:
             system_prompt: System-level instructions for the LLM.
             user_prompt: User query or input for the LLM.
             response_model: Pydantic model class for structured output validation.
-            temperature: Sampling temperature (0.0 to 2.0). Lower is more deterministic.
+            temperature: Sampling temperature (0.0 to 2.0).
 
         Returns:
             An instance of the response_model with validated data.
@@ -187,28 +191,28 @@ class LLMClient:
         """
         messages = self._build_messages(system_prompt, user_prompt)
 
-        try:
+        def _call() -> BaseModel:
             response = self._call_structured_completion(
                 messages=messages,
                 response_model=response_model,
                 temperature=temperature,
             )
             return self._validate_structured_response(response, response_model)
-        except Exception as exc:
-            self._handle_api_error(exc)
+
+        return self._retry_with_backoff(_call)
 
     def stream_text(
         self,
         system_prompt: str,
         user_prompt: str,
-        temperature: float = 0.7,
+        temperature: float = DEFAULT_TEMPERATURE,
     ) -> Iterator[str]:
-        """Stream text chunks from the LLM.
+        """Stream text chunks from Gemini with retry logic.
 
         Args:
             system_prompt: System-level instructions for the LLM.
             user_prompt: User query or input for the LLM.
-            temperature: Sampling temperature (0.0 to 2.0). Lower is more deterministic.
+            temperature: Sampling temperature (0.0 to 2.0).
 
         Yields:
             Incremental text chunks as they are generated by the LLM.
@@ -222,22 +226,23 @@ class LLMClient:
         """
         messages = self._build_messages(system_prompt, user_prompt)
 
-        try:
-            stream = self._call_chat_completion_stream(
+        def _call() -> Iterator[str]:
+            return self._call_chat_completion_stream(
                 messages=messages,
                 temperature=temperature,
             )
-            for chunk in stream:
-                content = self._extract_stream_content(chunk)
-                if content:
-                    yield content
-        except Exception as exc:
-            self._handle_api_error(exc)
+
+        stream = self._retry_with_backoff(_call)
+
+        for chunk in stream:
+            content = self._extract_stream_content(chunk)
+            if content:
+                yield content
 
     def _build_messages(
         self, system_prompt: str, user_prompt: str
     ) -> list[dict[str, str]]:
-        """Construct chat messages for the LLM API.
+        """Construct chat messages for the Gemini API.
 
         Args:
             system_prompt: System-level instructions.
@@ -256,33 +261,41 @@ class LLMClient:
         messages: list[dict[str, str]],
         temperature: float,
         max_tokens: int | None,
-    ) -> ChatCompletion:
-        """Call the chat completion API for non-streaming text generation.
+    ) -> Any:
+        """Call the Gemini API for non-streaming text generation.
 
         Args:
-            messages: List of chat messages.
+            messages: List of message dictionaries.
             temperature: Sampling temperature.
             max_tokens: Maximum tokens to generate.
 
         Returns:
-            ChatCompletion response from the API.
+            Gemini response object.
 
         Raises:
-            Propagates API exceptions for handling by _handle_api_error.
+            RuntimeError: If client is not initialized.
+            Propagates Gemini SDK exceptions for handling by _retry_with_backoff.
         """
         if self._client is None:
-            raise RuntimeError("LLM client is not initialized.")
+            raise RuntimeError("Gemini client is not initialized.")
 
-        kwargs: dict[str, Any] = {
-            "model": self._model,
-            "messages": messages,
-            "temperature": temperature,
-        }
+        system_instruction, contents = self._translate_messages(messages)
+
+        config = genai_types.GenerateContentConfig(
+            temperature=temperature,
+        )
+
+        if system_instruction:
+            config.system_instruction = system_instruction
 
         if max_tokens is not None:
-            kwargs["max_tokens"] = max_tokens
+            config.max_output_tokens = max_tokens
 
-        return self._client.chat.completions.create(**kwargs)
+        return self._client.models.generate_content(
+            model=self._model,
+            contents=contents,
+            config=config,
+        )
 
     def _call_structured_completion(
         self,
@@ -290,71 +303,114 @@ class LLMClient:
         response_model: type[BaseModel],
         temperature: float,
     ) -> Any:
-        """Call the chat completion API with structured output.
+        """Call the Gemini API for JSON-structured output.
+
+        Strategy: request JSON output from Gemini via
+        ``response_mime_type="application/json"``, then validate the
+        response text against the provided Pydantic model on the client
+        side.
 
         Args:
-            messages: List of chat messages.
-            response_model: Pydantic model for structured output.
+            messages: List of message dictionaries.
+            response_model: Pydantic model for structured output (used for
+                client-side validation, NOT sent to the API).
             temperature: Sampling temperature.
 
         Returns:
-            Structured response from the API.
+            Gemini response object with text content that will be parsed
+            into JSON by _validate_structured_response.
 
         Raises:
-            Propagates API exceptions for handling by _handle_api_error.
+            RuntimeError: If client is not initialized.
+            Propagates Gemini SDK exceptions for handling by _retry_with_backoff.
         """
         if self._client is None:
-            raise RuntimeError("LLM client is not initialized.")
+            raise RuntimeError("Gemini client is not initialized.")
 
-        # Get JSON schema from Pydantic model
-        json_schema = response_model.model_json_schema()
+        system_instruction, contents = self._translate_messages(messages)
 
-        return self._client.chat.completions.create(
-            model=self._model,
-            messages=messages,
+        config = genai_types.GenerateContentConfig(
             temperature=temperature,
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": response_model.__name__,
-                    "strict": True,
-                    "schema": json_schema,
-                },
-            },
+            response_mime_type="application/json",
+        )
+
+        if system_instruction:
+            config.system_instruction = system_instruction
+
+        return self._client.models.generate_content(
+            model=self._model,
+            contents=contents,
+            config=config,
         )
 
     def _call_chat_completion_stream(
         self,
         messages: list[dict[str, str]],
         temperature: float,
-    ) -> Stream[ChatCompletionChunk]:
-        """Call the chat completion API for streaming text generation.
+    ) -> Any:
+        """Call the Gemini API for streaming text generation.
 
         Args:
-            messages: List of chat messages.
+            messages: List of message dictionaries.
             temperature: Sampling temperature.
 
         Returns:
-            Stream of ChatCompletionChunk objects.
+            Gemini streaming response iterator.
 
         Raises:
-            Propagates API exceptions for handling by _handle_api_error.
+            RuntimeError: If client is not initialized.
+            Propagates Gemini SDK exceptions for handling by _retry_with_backoff.
         """
         if self._client is None:
-            raise RuntimeError("LLM client is not initialized.")
+            raise RuntimeError("Gemini client is not initialized.")
 
-        return self._client.chat.completions.create(
-            model=self._model,
-            messages=messages,
+        system_instruction, contents = self._translate_messages(messages)
+
+        config = genai_types.GenerateContentConfig(
             temperature=temperature,
-            stream=True,
         )
 
-    def _validate_response(self, response: ChatCompletion) -> str:
-        """Extract and validate text content from a chat completion response.
+        if system_instruction:
+            config.system_instruction = system_instruction
+
+        return self._client.models.generate_content_stream(
+            model=self._model,
+            contents=contents,
+            config=config,
+        )
+
+    def _translate_messages(
+        self, messages: list[dict[str, str]]
+    ) -> tuple[str | None, str | list[str]]:
+        """Translate chat messages to Gemini format.
 
         Args:
-            response: ChatCompletion response from the API.
+            messages: List of message dictionaries.
+
+        Returns:
+            Tuple of (system_instruction, contents) where system_instruction
+            is the system message content or None, and contents is the user
+            message content (string or list of strings).
+        """
+        system_instruction = None
+        user_messages = []
+
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "system":
+                system_instruction = content
+            else:
+                user_messages.append(content)
+
+        contents = user_messages[-1] if len(user_messages) == 1 else user_messages
+        return system_instruction, contents
+
+    def _validate_text_response(self, response: Any) -> str:
+        """Extract and validate text content from a Gemini response.
+
+        Args:
+            response: Gemini response object.
 
         Returns:
             The validated text content.
@@ -364,13 +420,13 @@ class LLMClient:
             InvalidResponseError: If response structure is unexpected.
         """
         try:
-            content = response.choices[0].message.content
+            content = response.text
             if content is None or content.strip() == "":
-                raise EmptyResponseError("LLM returned empty content.")
+                raise EmptyResponseError("Gemini returned empty content.")
             return content
         except (IndexError, AttributeError) as exc:
             raise InvalidResponseError(
-                f"Unexpected response structure from LLM: {exc}"
+                f"Unexpected response structure from Gemini: {exc}"
             ) from exc
 
     def _validate_structured_response(
@@ -378,8 +434,11 @@ class LLMClient:
     ) -> BaseModel:
         """Validate structured response against Pydantic model.
 
+        Prefers Gemini SDK's native parsed response when available,
+        falls back to manual JSON parsing.
+
         Args:
-            response: Raw response from the API.
+            response: Raw response from the Gemini API.
             response_model: Pydantic model class for validation.
 
         Returns:
@@ -387,25 +446,31 @@ class LLMClient:
 
         Raises:
             EmptyResponseError: If content is empty or missing.
-            InvalidResponseError: If response structure is unexpected.
+            InvalidResponseError: If response is malformed.
             StructuredValidationError: If validation fails.
         """
         try:
-            content = response.choices[0].message.content
-            if content is None or content.strip() == "":
-                raise EmptyResponseError("LLM returned empty structured content.")
+            # Prefer native parsed response from Gemini SDK
+            if hasattr(response, "parsed") and response.parsed is not None:
+                try:
+                    return response_model.model_validate(response.parsed)
+                except ValidationError as exc:
+                    raise StructuredValidationError(
+                        f"Failed to validate structured output: {exc}"
+                    ) from exc
 
-            # Parse JSON content, extracting only the first JSON object
-            import json as _json
+            # Fallback: parse text manually, extracting only the first JSON object
+            content = response.text
+            if content is None or content.strip() == "":
+                raise EmptyResponseError("Gemini returned empty structured content.")
 
             try:
                 parsed_content = self._extract_first_json_object(content)
-            except _json.JSONDecodeError as exc:
+            except json.JSONDecodeError as exc:
                 raise InvalidResponseError(
-                    f"LLM returned invalid JSON: {exc}"
+                    f"Gemini returned invalid JSON: {exc}"
                 ) from exc
 
-            # Validate against Pydantic model
             try:
                 return response_model.model_validate(parsed_content)
             except ValidationError as exc:
@@ -415,23 +480,8 @@ class LLMClient:
 
         except (IndexError, AttributeError) as exc:
             raise InvalidResponseError(
-                f"Unexpected structured response structure from LLM: {exc}"
+                f"Unexpected structured response structure from Gemini: {exc}"
             ) from exc
-
-    def _extract_stream_content(self, chunk: ChatCompletionChunk) -> str:
-        """Extract text content from a streaming chunk.
-
-        Args:
-            chunk: Single chunk from the streaming response.
-
-        Returns:
-            Text content from the chunk, or empty string if no content.
-        """
-        try:
-            delta = chunk.choices[0].delta
-            return delta.content or ""
-        except (IndexError, AttributeError):
-            return ""
 
     def _extract_first_json_object(self, content: str) -> Any:
         """Extract the first valid JSON object from a string.
@@ -450,28 +500,120 @@ class LLMClient:
         Raises:
             json.JSONDecodeError: If no valid JSON object can be extracted.
         """
-        import json as _json
-
         start = content.find("{")
         if start == -1:
-            raise _json.JSONDecodeError("No JSON object found in response", content, 0)
+            raise json.JSONDecodeError("No JSON object found in response", content, 0)
 
         for end in range(len(content), start, -1):
             candidate = content[start:end]
             try:
-                return _json.loads(candidate)
-            except _json.JSONDecodeError:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
                 continue
 
-        raise _json.JSONDecodeError(
+        raise json.JSONDecodeError(
             "No valid JSON object found in response", content, start
         )
 
-    def _handle_api_error(self, exc: Exception) -> None:
-        """Convert provider exceptions into clean application exceptions.
+    def _extract_stream_content(self, chunk: Any) -> str:
+        """Extract text content from a streaming chunk.
 
         Args:
-            exc: Original exception from the provider SDK.
+            chunk: Single chunk from the Gemini streaming response.
+
+        Returns:
+            Text content from the chunk, or empty string if no content.
+        """
+        try:
+            return chunk.text or ""
+        except (IndexError, AttributeError):
+            return ""
+
+    def _retry_with_backoff[T](self, func: callable[[], T]) -> T:
+        """Execute a function with exponential backoff retry logic.
+
+        Args:
+            func: Function to execute. Should return a value or raise an exception.
+
+        Returns:
+            The return value of the function.
+
+        Raises:
+            AuthenticationError: For authentication failures (no retry).
+            RateLimitError: For rate limit errors (retries with backoff).
+            NetworkError: For network errors (retries with backoff).
+            TimeoutError: For timeout errors (retries with backoff).
+            LLMError: For other errors after retries exhausted.
+        """
+        last_exception: Exception | None = None
+        delay = INITIAL_RETRY_DELAY
+
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                return func()
+            except ClientError as exc:
+                status_code = getattr(exc, "status_code", None)
+                if status_code in (401, 403):
+                    raise AuthenticationError(
+                        "Gemini authentication failed. Please check your API key."
+                    ) from exc
+                if status_code == 429:
+                    last_exception = exc
+                    if attempt < MAX_RETRIES:
+                        logger.warning(
+                            f"Rate limit exceeded, retrying in {delay:.1f}s "
+                            f"(attempt {attempt + 1}/{MAX_RETRIES})"
+                        )
+                        time.sleep(delay)
+                        delay *= RETRY_BACKOFF_MULTIPLIER
+                    else:
+                        raise RateLimitError(
+                            "Gemini rate limit exceeded after retries."
+                        ) from exc
+                else:
+                    raise self._convert_exception(exc)
+            except ServerError as exc:
+                last_exception = exc
+                if attempt < MAX_RETRIES:
+                    logger.warning(
+                        f"Server error, retrying in {delay:.1f}s "
+                        f"(attempt {attempt + 1}/{MAX_RETRIES})"
+                    )
+                    time.sleep(delay)
+                    delay *= RETRY_BACKOFF_MULTIPLIER
+                else:
+                    raise NetworkError(
+                        "Failed to connect to Gemini after retries."
+                    ) from exc
+            except Exception as exc:
+                if "timeout" in str(exc).lower():
+                    last_exception = exc
+                    if attempt < MAX_RETRIES:
+                        logger.warning(
+                            f"Timeout error, retrying in {delay:.1f}s "
+                            f"(attempt {attempt + 1}/{MAX_RETRIES})"
+                        )
+                        time.sleep(delay)
+                        delay *= RETRY_BACKOFF_MULTIPLIER
+                    else:
+                        raise TimeoutError(
+                            "Gemini request timed out after retries."
+                        ) from exc
+                else:
+                    raise self._convert_exception(exc)
+
+        if last_exception:
+            raise self._convert_exception(last_exception)
+        raise LLMError("Unexpected error in retry logic.")
+
+    def _convert_exception(self, exc: Exception) -> Exception:
+        """Convert Gemini SDK exceptions into application exceptions.
+
+        Args:
+            exc: Original exception from the Gemini SDK.
+
+        Returns:
+            Converted application exception.
 
         Raises:
             AuthenticationError: For authentication failures.
@@ -480,43 +622,37 @@ class LLMClient:
             TimeoutError: For timeout errors.
             LLMError: For other errors.
         """
-        # Import OpenAI exceptions
-        from openai import AuthenticationError as OpenAIAuthError
-        from openai import APICONNECTIONERROR, RateLimitError as OpenAIRateLimitError
+        if isinstance(exc, ClientError):
+            status_code = getattr(exc, "status_code", None)
+            if status_code in (401, 403):
+                return AuthenticationError(
+                    "Gemini authentication failed. Please check your API key."
+                )
+            return LLMError(
+                f"Gemini client error: {exc}"
+            )
 
-        if isinstance(exc, OpenAIAuthError):
-            raise AuthenticationError(
-                "LLM provider authentication failed. Please check your API key."
-            ) from exc
+        if isinstance(exc, ServerError):
+            return NetworkError(
+                "Failed to connect to Gemini. Please check your network connection."
+            )
 
-        if isinstance(exc, OpenAIRateLimitError):
-            raise RateLimitError(
-                "LLM provider rate limit exceeded. Please try again later."
-            ) from exc
-
-        if isinstance(exc, APICONNECTIONERROR):
-            raise NetworkError(
-                "Failed to connect to LLM provider. Please check your network connection."
-            ) from exc
-
-        # Check for timeout-related errors
         if "timeout" in str(exc).lower():
-            raise TimeoutError(
-                "LLM provider request timed out. Please try again."
-            ) from exc
+            return TimeoutError(
+                "Gemini request timed out. Please try again."
+            )
 
-        # Generic LLM error for anything else
-        logger.error(f"Unexpected LLM API error: {exc}", exc_info=True)
-        raise LLMError(
-            f"An error occurred while communicating with the LLM provider: {exc}"
-        ) from exc
-
-    @property
-    def provider(self) -> LLMProvider:
-        """Return the configured LLM provider."""
-        return self._provider
+        logger.error(f"Unexpected Gemini API error: {exc}", exc_info=True)
+        return LLMError(
+            f"An error occurred while communicating with Gemini: {exc}"
+        )
 
     @property
     def model(self) -> str:
         """Return the configured model name."""
         return self._model
+
+    @property
+    def timeout(self) -> float:
+        """Return the configured timeout in seconds."""
+        return self._timeout

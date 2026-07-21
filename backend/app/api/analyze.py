@@ -27,11 +27,9 @@ from app.core.dependencies import (
     get_chart_builder,
     get_executor,
     get_explainer,
-    get_llm_client,
     get_planner,
     get_session_manager,
 )
-from app.core.exceptions import InsightSculptureError
 from app.executor import DataExecutor, ExecutionResult
 from app.llm.client import (
     AuthenticationError,
@@ -67,11 +65,6 @@ class AnalyzeRequest(BaseModel):
         default=None,
         description="Optional conversation history for follow-up context.",
     )
-
-    @classmethod
-    def field_validator(cls, field_name: str):
-        """Create a field validator for a field."""
-        pass
 
 
 class AnalyzeResponse(BaseModel):

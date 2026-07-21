@@ -2,7 +2,7 @@
 
 This module is responsible ONLY for streaming analysis responses to the frontend
 using Server-Sent Events (SSE). It does NOT perform analytics, generate AnalysisPlans,
-execute Pandas, call OpenAI directly, or duplicate analyze.py logic. It only streams
+execute Pandas, call LLM directly, or duplicate analyze.py logic. It only streams
 progress and explanation text to the frontend.
 """
 
@@ -42,7 +42,6 @@ from app.llm.client import (
     RateLimitError,
     TimeoutError,
 )
-from app.llm.openai_client import BaseLLMClient
 from app.llm.planner import (
     AnalysisPlanner,
     InvalidDatasetProfileError,
@@ -76,7 +75,7 @@ async def stream_analysis(
     planner: AnalysisPlanner = Depends(get_planner),
     executor: DataExecutor = Depends(get_executor),
     chart_builder: ChartBuilder = Depends(get_chart_builder),
-    llm_client: BaseLLMClient = Depends(get_llm_client),
+    llm_client = Depends(get_llm_client),
 ) -> StreamingResponse:
     """Stream analysis progress and explanation using Server-Sent Events.
 
@@ -113,7 +112,7 @@ async def _stream_analysis_generator(
     planner: AnalysisPlanner,
     executor: DataExecutor,
     chart_builder: ChartBuilder,
-    llm_client: BaseLLMClient,
+    llm_client,
 ) -> AsyncGenerator[str, None]:
     """Async generator for streaming analysis progress via SSE.
 
@@ -316,7 +315,7 @@ async def _stream_analysis_generator(
 
 
 async def _stream_text_async(
-    llm_client: BaseLLMClient,
+    llm_client,
     system_prompt: str,
     user_prompt: str,
 ) -> AsyncGenerator[str, None]:

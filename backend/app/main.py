@@ -1,7 +1,7 @@
 """Application composition root for Insight Sculpture.
 
 This module is responsible ONLY for application initialization.
-It performs NO analytics, NO Pandas execution, NO OpenAI calls, NO business logic.
+It performs NO analytics, NO Pandas execution, NO LLM calls, NO business logic.
 Its responsibilities are:
 - Application startup
 - Configuration

@@ -6,7 +6,7 @@ import os
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Self, TypeVar
+from typing import Self
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -26,14 +26,6 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 
-class LLMProvider(str, Enum):
-    """Supported LLM backends for plan generation and explanations."""
-
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    GEMINI = "gemini"
-
-
 def _parse_bool(value: str | None, *, default: bool) -> bool:
     """Parse common truthy/falsey environment string values."""
     if value is None:
@@ -46,10 +38,7 @@ def _parse_bool(value: str | None, *, default: bool) -> bool:
     raise ValueError(f"Invalid boolean value: {value!r}")
 
 
-_EnumT = TypeVar("_EnumT", bound=Enum)
-
-
-def _parse_enum(enum_cls: type[_EnumT], value: str | None, *, default: _EnumT) -> _EnumT:
+def _parse_enum(enum_cls: type[Enum], value: str | None, *, default: Enum) -> Enum:
     """Parse an environment variable into an enum member."""
     if value is None:
         return default
@@ -69,15 +58,12 @@ class Settings(BaseModel):
     environment: Environment = Field(default=Environment.DEVELOPMENT)
     debug: bool = Field(default=True)
 
-    llm_provider: LLMProvider = Field(default=LLMProvider.OPENAI)
-    openai_api_key: str | None = Field(default=None)
-    anthropic_api_key: str | None = Field(default=None)
     gemini_api_key: str | None = Field(default=None)
 
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000, ge=1, le=65535)
 
-    @field_validator("openai_api_key", "anthropic_api_key", "gemini_api_key", mode="before")
+    @field_validator("gemini_api_key", mode="before")
     @classmethod
     def _empty_string_to_none(cls, value: object) -> str | None:
         """Treat blank API key strings as unset."""
@@ -94,15 +80,9 @@ class Settings(BaseModel):
         if self.environment == Environment.PRODUCTION and self.debug:
             raise ValueError("DEBUG must be disabled when ENVIRONMENT is 'production'.")
 
-        provider_key_map = {
-            LLMProvider.OPENAI: ("OPENAI_API_KEY", self.openai_api_key),
-            LLMProvider.ANTHROPIC: ("ANTHROPIC_API_KEY", self.anthropic_api_key),
-            LLMProvider.GEMINI: ("GEMINI_API_KEY", self.gemini_api_key),
-        }
-        env_name, api_key = provider_key_map[self.llm_provider]
-        if not api_key:
+        if not self.gemini_api_key:
             raise ValueError(
-                f"{env_name} is required when LLM_PROVIDER is '{self.llm_provider.value}'."
+                "GEMINI_API_KEY is required for Gemini LLM provider."
             )
 
         return self
@@ -116,26 +96,6 @@ class Settings(BaseModel):
     def is_production(self) -> bool:
         """Return True when running in production mode."""
         return self.environment == Environment.PRODUCTION
-
-    @property
-    def active_api_key(self) -> str:
-        """Return the API key for the configured LLM provider."""
-        if self.llm_provider == LLMProvider.OPENAI:
-            if self.openai_api_key is None:
-                raise RuntimeError("OpenAI API key is not configured.")
-            return self.openai_api_key
-
-        if self.llm_provider == LLMProvider.ANTHROPIC:
-            if self.anthropic_api_key is None:
-                raise RuntimeError("Anthropic API key is not configured.")
-            return self.anthropic_api_key
-
-        if self.llm_provider == LLMProvider.GEMINI:
-            if self.gemini_api_key is None:
-                raise RuntimeError("Gemini API key is not configured.")
-            return self.gemini_api_key
-
-        raise RuntimeError(f"Unsupported LLM provider: {self.llm_provider}")
 
     @classmethod
     def from_env(cls) -> Self:
@@ -157,13 +117,6 @@ class Settings(BaseModel):
             app_name=os.getenv("APP_NAME", "Insight Sculpture"),
             environment=environment,
             debug=_parse_bool(os.getenv("DEBUG"), default=debug_default),
-            llm_provider=_parse_enum(
-                LLMProvider,
-                os.getenv("LLM_PROVIDER"),
-                default=LLMProvider.OPENAI,
-            ),
-            openai_api_key=os.getenv("OPENAI_API_KEY"),
-            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
             gemini_api_key=os.getenv("GEMINI_API_KEY"),
             host=os.getenv("HOST", "127.0.0.1"),
             port=port,

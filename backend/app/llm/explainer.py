@@ -24,7 +24,6 @@ from app.llm.client import (
     StructuredValidationError,
     TimeoutError,
 )
-from app.llm.openai_client import BaseLLMClient
 from app.llm.prompts import (
     build_explainer_system_prompt,
     build_explainer_user_prompt,
@@ -115,21 +114,17 @@ class AnalysisExplainer:
     testable and extensible, with dependency injection for the LLM client.
     """
 
-    def __init__(self, llm_client: BaseLLMClient) -> None:
+    def __init__(self, llm_client) -> None:
         """Initialize the analysis explainer.
 
         Args:
-            llm_client: LLM client for generating explanations. Must implement
-                BaseLLMClient interface. Injected via dependency injection.
+            llm_client: Gemini client for generating explanations. Injected via dependency injection.
 
         Raises:
-            ValueError: If llm_client is None or does not implement BaseLLMClient.
+            ValueError: If llm_client is None.
         """
         if llm_client is None:
             raise ValueError("llm_client cannot be None.")
-
-        if not isinstance(llm_client, BaseLLMClient):
-            raise ValueError("llm_client must implement BaseLLMClient interface.")
 
         self._llm_client = llm_client
 
@@ -175,15 +170,6 @@ class AnalysisExplainer:
         user_prompt = self._prepare_prompt(
             original_question, operation, result_summary, conversation_history, dataset_context
         )
-        
-        logger.info("========== EXPLAINER SYSTEM PROMPT ==========")
-        logger.info(system_prompt)
-
-        logger.info("========== EXPLAINER USER PROMPT ==========")
-        logger.info(user_prompt)
-
-        logger.info("========== DATASET CONTEXT ==========")
-        logger.info(dataset_context)
 
         try:
             # Call LLM to generate structured explanation

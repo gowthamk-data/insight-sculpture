@@ -20,13 +20,10 @@ from app.core.exceptions import (
     AuthenticationError,
     ConfigurationError,
     DependencyError,
-    ProviderConfigurationError,
 )
 from app.executor import DataExecutor
-from app.llm.openai_client import BaseLLMClient, OpenAIClient
-from app.llm.gemini_client import GeminiClient
+from app.llm.client import GeminiClient
 from app.llm.planner import AnalysisPlanner
-from app.llm.prompts import build_dataset_context
 from app.profiler import DatasetProfiler
 from app.session import DatasetSessionManager
 
@@ -157,75 +154,45 @@ def get_chart_builder() -> ChartBuilder:
 
 
 # ============================================================
-# LLM Client
+# Gemini LLM Client
 # ============================================================
 
 
 @lru_cache
-def get_llm_client() -> BaseLLMClient:
-    """Get or create the shared LLM client.
+def get_llm_client() -> GeminiClient:
+    """Get or create the shared Gemini client.
 
-    The LLM client is a singleton that communicates with the configured
-    LLM provider (OpenAI or Anthropic). It is reused across all requests
-    to avoid recreating the client and its underlying connections.
+    The Gemini client is a singleton that communicates with Google's
+    Gemini API. It is reused across all requests to avoid recreating
+    the client and its underlying connections.
 
     Returns:
-        Shared BaseLLMClient instance (OpenAIClient implementation).
+        Shared GeminiClient instance.
 
     Raises:
-        ProviderConfigurationError: If LLM provider is misconfigured.
         AuthenticationError: If API key is missing or invalid.
         DependencyError: If client initialization fails.
     """
     try:
         settings = get_settings_cached()
 
-        # Validate API key is present
-        if not settings.active_api_key:
+        if not settings.gemini_api_key:
             raise AuthenticationError(
-                provider=settings.llm_provider.value,
-                details={"reason": "API key not configured"},
+                provider="gemini",
+                details={"reason": "GEMINI_API_KEY not configured"},
             )
 
-        # Create appropriate client based on provider
-
-        if settings.llm_provider.value == "openai":
-            return OpenAIClient(
-                api_key=settings.openai_api_key,
-                model=None,
-                timeout=None,
+        return GeminiClient(
+            api_key=settings.gemini_api_key,
+            model=None,
+            timeout=None,
         )
 
-        elif settings.llm_provider.value == "gemini":
-            return GeminiClient(
-                api_key=settings.gemini_api_key,
-                model=None,
-                timeout=None,
-            )
-
-        elif settings.llm_provider.value == "anthropic":
-            raise ProviderConfigurationError(
-                details={
-                "provider": "anthropic",
-                "reason": "Not yet implemented",
-        }
-    )
-
-        else:
-            raise ProviderConfigurationError(
-            details={
-                "provider": settings.llm_provider.value,
-                "reason": "Unknown provider",
-            }
-    )
     except AuthenticationError:
         # Re-raise authentication errors directly
         raise
-    except ProviderConfigurationError:
-        # Re-raise configuration errors directly
-        raise
     except Exception as exc:
-        logger.error(f"Failed to initialize LLM client: {exc}", exc_info=True)
+        logger.error(f"Failed to initialize Gemini client: {exc}", exc_info=True)
         raise DependencyError("llm_client") from exc
 
 
@@ -334,7 +301,7 @@ def validate_dependencies() -> bool:
     try:
         get_llm_client()
     except Exception as exc:
-        logger.error(f"LLM client validation failed: {exc}")
+        logger.error(f"Gemini client validation failed: {exc}")
         dependencies_valid = False
 
     return dependencies_valid

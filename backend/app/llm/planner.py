@@ -25,7 +25,6 @@ from app.llm.client import (
     StructuredValidationError,
     TimeoutError,
 )
-from app.llm.openai_client import BaseLLMClient
 from app.llm.prompts import (
     build_dataset_context,
     build_planner_system_prompt,
@@ -87,21 +86,17 @@ class AnalysisPlanner:
     injection for the LLM client and clean separation of concerns.
     """
 
-    def __init__(self, llm_client: BaseLLMClient) -> None:
+    def __init__(self, llm_client) -> None:
         """Initialize the analysis planner.
 
         Args:
-            llm_client: LLM client for generating analysis plans. Must implement
-                BaseLLMClient interface. Injected via dependency injection.
+            llm_client: Gemini client for generating analysis plans. Injected via dependency injection.
 
         Raises:
-            ValueError: If llm_client is None or does not implement BaseLLMClient.
+            ValueError: If llm_client is None.
         """
         if llm_client is None:
             raise ValueError("llm_client cannot be None.")
-
-        if not isinstance(llm_client, BaseLLMClient):
-            raise ValueError("llm_client must implement BaseLLMClient interface.")
 
         self._llm_client = llm_client
 
