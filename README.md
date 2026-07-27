@@ -17,6 +17,24 @@ Insight Sculpture is a conversational analytics platform that lets users upload 
 - **Schema Integrity** — A deterministic schema resolution layer validates column references before LLM planning to prevent hallucinated column names.
 - **Production-Ready Docker** — Multi-service Docker Compose setup with Nginx frontend and health-checked FastAPI backend.
 
+## Workflow
+User Question
+↓
+Intent Extraction
+↓
+Planner (Gemini)
+↓
+Validated Plan
+↓
+Pandas Executor
+↓
+Plotly
+↓
+Explainer (Gemini)
+↓
+Frontend
+
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -70,8 +88,7 @@ insight-sculpture/
 │   │   ├── app.js                  # Application orchestration
 │   │   ├── upload.js               # Dataset upload UI
 │   │   ├── query.js                # Chat/query UI
-│   │   ├── stream.js               # SSE event handling
-│   │   ├── chart.js                # Chart rendering
+│   │   ├── stream.js               # SSE event handling               
 │   │   ├── state.js                # Client state management
 │   │   ├── ui.js                   # UI utilities
 │   │   └── utils.js                # Helpers
