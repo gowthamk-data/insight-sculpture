@@ -19,19 +19,33 @@ Insight Sculpture is a conversational analytics platform that lets users upload 
 
 ## Workflow
 User Question
+
 ↓
+
 Intent Extraction
+
 ↓
+
 Planner (Gemini)
+
 ↓
+
 Validated Plan
+
 ↓
+
 Pandas Executor
+
 ↓
+
 Plotly
+
 ↓
+
 Explainer (Gemini)
+
 ↓
+
 Frontend
 
 
