@@ -6,6 +6,10 @@ AI-Powered Data Analytics Assistant that converts natural language questions int
 
 Insight Sculpture is a conversational analytics platform that lets users upload tabular datasets (CSV, XLSX, XLS) and query them using natural language. The backend uses an LLM-driven planner to translate questions into executable analysis plans, a deterministic Pandas executor to compute results, a Plotly chart builder for visualizations, and an LLM explainer to narrate findings. The application is designed for local or containerized deployment with a static HTML5 frontend and a FastAPI backend.
 
+## Live Demo
+
+**AWS Deployment:** [AI-Powered Data Analytics Assistant](http://16.112.164.162/)
+
 ## Key Features
 
 - **Dataset Upload** — Ingest CSV and Excel files with automatic profiling and session management.
